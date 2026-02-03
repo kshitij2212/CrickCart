@@ -11,8 +11,12 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+const categoryRoutes = require("./routes/categoryRoutes");
+app.use("/api/v1/categories", categoryRoutes);
+
 app.get("/", (req, res) => {
-    res.send("CrickCart is running...");
+  // res.status(200).json({ message: "CrickCart is running..." });
+  res.send("CrickCart is running...");
 });
 
 module.exports = app;
