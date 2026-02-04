@@ -127,6 +127,127 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.get("/featured", async (req, res) => {
+    try {
+        const products = await Product.find({ isFeatured: true })
+            .populate('category', 'name slug color')
+            .limit(10)
+            .sort('-createdAt');
 
+        res.status(200).json({
+            success: true,
+            count: products.length,
+            data: products
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message
+        });
+    }
+});
+
+router.get("/:id", async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id)
+            .populate('category', 'name slug color')
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: product
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message
+        });
+    }
+});
+
+router.put("/:id", async (req, res) => {
+    try {
+        let product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        // If category is being updated, validate it
+        if (req.body.category) {
+            const category = await Category.findById(req.body.category);
+            if (!category) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Category"
+                });
+            }
+        }
+
+        // If name is being updated, regenerate slug
+        if (req.body.name && req.body.name !== product.name) {
+            req.body.slug = slugify(req.body.name, { lower: true }) + '-' + Date.now();
+        }
+
+        product = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        ).populate('category', 'name slug color');
+
+        res.status(200).json({
+            success: true,
+            message: 'Product updated successfully',
+            data: product
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating product',
+            error: error.message
+        });
+    }
+});
+
+router.delete("/:id", async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        await product.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: 'Product deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting product',
+            error: error.message
+        });
+    }
+});
 
 module.exports = router;

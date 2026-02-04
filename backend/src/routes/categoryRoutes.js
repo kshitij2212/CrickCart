@@ -69,7 +69,7 @@ router.post("/create", async (req, res) => {
     }
 })
 
-router.get("/all", async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         const categoriesList = await Category.find()
         if (!categoriesList) {
