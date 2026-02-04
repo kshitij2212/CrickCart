@@ -14,7 +14,7 @@ cloudinary.config({
     secure: true,
 })
 
-const uploadDir = 'uploads/';
+const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir)}
 
@@ -73,7 +73,7 @@ router.post("/upload", upload.array('images'), async (req, res) => {
         })
     } catch (error) {
         console.error(error);
-        
+
         if (req.files) {
             req.files.forEach(file => {
                 if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
@@ -135,4 +135,29 @@ router.post("/create", async (req, res) => {
         })
     }
 })
+
+// router.get("/all", async (req, res) => {
+//     try {
+//         const categoriesList = await Category.find()
+//         if (!categoriesList) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "Categories not found"
+//             })
+//         }
+//         return res.status(200).json({
+//             success: true,
+//             message: "Categories fetched successfully",
+//             data: categoriesList,
+//         })
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({
+//             success: false,
+//             message: "Error fetching categories",
+//             error: error.message
+//         })
+//     }
+// })
+
 module.exports = router;
