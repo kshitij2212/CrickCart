@@ -1,3 +1,6 @@
+// FULL READY
+
+
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
@@ -98,16 +101,12 @@ productSchema.set('toJSON', {
     delete ret._id}
 });
 
-productSchema.pre('save', function (next) {
-  if (!this.slug && this.name) {
-    this.slug =
-      this.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-') +
-      '-' +
-      Date.now();
+productSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
   }
-  next();
 });
 
 module.exports = mongoose.model("Product", productSchema);
