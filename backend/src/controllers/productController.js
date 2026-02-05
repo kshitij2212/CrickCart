@@ -1,4 +1,3 @@
-// controllers/productController.js
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const slugify = require('slugify');
