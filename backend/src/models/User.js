@@ -86,20 +86,17 @@ userSchema.set('toJSON', {
     versionKey: false,
     transform: function (doc, ret) {
         delete ret._id;
-        delete ret.password; // Never send password in response
-    }});
-
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-    // Only hash if password is modified
-    if (!this.isModified('password')) {
-        return next();
+        delete ret.password;
     }
-    
+});
+
+userSchema.pre('save', async function () {
+    if (!this.isModified('password')) return;
+
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
 });
+
 
 // Method to compare password
 userSchema.methods.comparePassword = async function(enteredPassword) {
