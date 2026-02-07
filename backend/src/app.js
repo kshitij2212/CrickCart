@@ -23,7 +23,7 @@ app.use("/api/v1/users", userRoutes)
 app.use("/api/v1/cart", cartRoutes)
 app.use("/api/v1/orders", orderRoutes);
 
-app.get("/", (req, res) => {
+app.get("/api/v1", (req, res) => {
   res.send("CrickCart is running...");
 });
 

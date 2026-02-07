@@ -541,8 +541,3 @@ exports.updateOrderStatus = async (req, res) => {
         session.endSession();
     }
 };
-
-module.exports = {
-    ORDER_STATUS,
-    PAYMENT_STATUS
-};
