@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .athletic-font {
+    font-family: 'Barlow Condensed', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+
+  body {
+    @apply font-display text-navy dark:text-slate-100 bg-background-light dark:bg-background-dark;
+  }
+}
+
+@layer utilities {
+  .mesh-texture {
+    background-image: radial-gradient(circle, #00a8e8 0.5px, transparent 0.5px);
+    background-size: 10px 10px;
+  }
+
+  /* Diagonal Background */
+  .diagonal-bg {
+    background: repeating-linear-gradient(45deg,
+        transparent,
+        transparent 40px,
+        rgba(0, 168, 232, 0.03) 40px,
+        rgba(0, 168, 232, 0.03) 80px);
+  }
+
+  /* Hero Speed Blur Effect */
+  .hero-speed-blur {
+    filter: blur(2px) contrast(1.1);
+    transform: skewX(-2deg);
+  }
+
+  /* Card Hover Effect */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 0 20px rgba(0, 168, 232, 0.4);
+  }
+
+  /* Metallic Badge */
+  .metallic-badge {
+    background: linear-gradient(135deg, #e2e8f0 0%, #ffffff 50%, #94a3b8 100%);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #cbd5e1;
+  }
+
+  /* Footer Pitch Pattern */
+  .footer-pitch {
+    background-image:
+      linear-gradient(to top, rgba(0, 168, 232, 0.1) 0%, transparent 100%),
+      linear-gradient(90deg, transparent 49.5%, rgba(255, 255, 255, 0.2) 50%, transparent 50.5%);
+    background-size: 100% 100%, 100px 100%;
+  }
+
+  /* Hero Underline */
+  .hero-underline {
+    background: linear-gradient(90deg, #00a8e8 0%, transparent 100%);
+    height: 8px;
+    width: 100%;
+    display: block;
+    margin-top: -8px;
+  }
+
+  /* Hide Scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
