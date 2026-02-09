@@ -5,17 +5,12 @@
 @tailwind utilities;
 
 @layer base {
-
-  h1,
-  h2,
-  h3,
-  h4,
-  .athletic-font {
+  h1, h2, h3, h4, .athletic-font {
     font-family: 'Barlow Condensed', sans-serif;
     text-transform: uppercase;
     letter-spacing: -0.02em;
   }
-
+  
   body {
     @apply font-display text-navy dark:text-slate-100 bg-background-light dark:bg-background-dark;
   }
@@ -29,11 +24,13 @@
 
   /* Diagonal Background */
   .diagonal-bg {
-    background: repeating-linear-gradient(45deg,
-        transparent,
-        transparent 40px,
-        rgba(0, 168, 232, 0.03) 40px,
-        rgba(0, 168, 232, 0.03) 80px);
+    background: repeating-linear-gradient(
+      45deg, 
+      transparent, 
+      transparent 40px, 
+      rgba(0, 168, 232, 0.03) 40px, 
+      rgba(0, 168, 232, 0.03) 80px
+    );
   }
 
   /* Hero Speed Blur Effect */
@@ -55,15 +52,15 @@
   /* Metallic Badge */
   .metallic-badge {
     background: linear-gradient(135deg, #e2e8f0 0%, #ffffff 50%, #94a3b8 100%);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1);
     border: 1px solid #cbd5e1;
   }
 
   /* Footer Pitch Pattern */
   .footer-pitch {
-    background-image:
-      linear-gradient(to top, rgba(0, 168, 232, 0.1) 0%, transparent 100%),
-      linear-gradient(90deg, transparent 49.5%, rgba(255, 255, 255, 0.2) 50%, transparent 50.5%);
+    background-image: 
+      linear-gradient(to top, rgba(0,168,232,0.1) 0%, transparent 100%), 
+      linear-gradient(90deg, transparent 49.5%, rgba(255,255,255,0.2) 50%, transparent 50.5%);
     background-size: 100% 100%, 100px 100%;
   }
 
