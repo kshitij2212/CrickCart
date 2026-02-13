@@ -103,6 +103,17 @@
   background: #555;
 }
 @keyframes ticker {
-                from { transform: translateX(0); }
-                to { transform: translateX(-50%); }
-              }
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
