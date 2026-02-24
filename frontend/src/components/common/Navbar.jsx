@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 const TICKER_ITEMS = [
   "FREE SHIPPING ON ORDERS OVER ₹999",
@@ -20,6 +21,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { isAuthenticated } = useAuth();
 
   return (
     <div>
@@ -55,8 +57,6 @@ export default function Navbar() {
               to="/"
               className="text-3xl font-black italic tracking-tighter">
               CRICK<span className="text-[#00a8e8]">CART</span>
-              {/* // className="text-4xl md:text-5xl font-black italic tracking-tighter hover:opacity-80 transition">
-              // CRICK<span className="text-[#00a8e8]">CART</span> */}
             </Link>
 
             {/* Desktop Search */}
@@ -88,9 +88,9 @@ export default function Navbar() {
                 </span>
               </Link>
 
-              {/* Login */}
+              {/* Profile / Login */}
               <Link
-                to="/login"
+                to={isAuthenticated ? '/profile' : '/login'}
                 className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition">
                 <span className="material-symbols-outlined text-[24px] leading-none">
                   person

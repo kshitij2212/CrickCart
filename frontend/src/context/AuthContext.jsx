@@ -8,16 +8,26 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+useEffect(() => {
+  console.log('🔄 AuthContext initializing...');
+  
+  const token = localStorage.getItem('token');
+  const savedUser = localStorage.getItem('user');
+  
+  console.log('🔄 Token from storage:', token);
+  console.log('🔄 User from storage:', savedUser);
 
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
-  }, []);
+  if (token && savedUser) {
+    const parsedUser = JSON.parse(savedUser);
+    console.log('✅ Setting user:', parsedUser);
+    setUser(parsedUser);
+  } else {
+    console.log('❌ No token or user found');
+  }
+  
+  setLoading(false);
+  console.log('✅ Loading complete');
+}, []);
 
   const login = async (email, password) => {
     try {
@@ -34,22 +44,38 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+  
 
   const register = async (userData) => {
     try {
+      console.log('📤 Sending register request:', userData);
+      
       const { data } = await api.post('/users/register', userData);
+      
+      console.log('📥 Register response:', data);
+      console.log('📥 Token:', data.token);
+      console.log('📥 User:', data.user);
       
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      console.log('💾 Saved to localStorage');
+      console.log('💾 Token:', localStorage.getItem('token'));
+      console.log('💾 User:', localStorage.getItem('user'));
+      
       setUser(data.user);
+      console.log('✅ User state updated:', data.user);
       
       toast.success('Registration successful!');
       return data.user;
     } catch (error) {
+      console.error('❌ Register error:', error);
+      console.error('❌ Response:', error.response?.data);
       toast.error(error.response?.data?.message || 'Registration failed');
       throw error;
     }
   };
+  
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -68,5 +94,11 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.role === 'admin',
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // AuthContext.jsx - value object ke baad, return se pehle
+console.log('🔐 AuthContext Current State:');
+console.log('  - user:', user);
+console.log('  - loading:', loading);
+console.log('  - isAuthenticated:', !!user);
+
+return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -4,15 +4,19 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useAuth } from '../hooks/useAuth'; // add this
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth(); // add this
   const { cart, fetchCart, updateCartItem, removeFromCart, loading } = useCart();
   const [updating, setUpdating] = useState({});
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (isAuthenticated) { // only fetch if logged in
+      fetchCart();
+    }
+  }, [isAuthenticated]); // depend on isAuthenticated
 
   const handleUpdateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;

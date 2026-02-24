@@ -24,16 +24,20 @@ api.interceptors.request.use(
 );
 
 // Response interceptor - Handle errors
+// services/api.js
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const token = localStorage.getItem('token');
+      if (token) { // only wipe and redirect if token existed
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
 );
 
-export default api;  // ✅ This line is important!
+export default api;

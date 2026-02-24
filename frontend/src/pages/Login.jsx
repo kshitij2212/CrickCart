@@ -12,23 +12,26 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const user = await login(formData.email, formData.password);
-      
-      if (user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-    } finally {
-      setLoading(false);
+  try {
+    const user = await login(formData.email, formData.password);
+    console.log('✅ Login returned user:', user); // ADD THIS
+    console.log('✅ Navigating to:', user.role === 'admin' ? '/admin' : '/');
+    
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
     }
-  };
+  } catch (error) {
+    console.error('Login error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center diagonal-bg px-4">

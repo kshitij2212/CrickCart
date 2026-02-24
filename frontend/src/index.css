@@ -1,16 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,800;0,900;1,800&family=Inter:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  h1, h2, h3, h4, .athletic-font {
-    font-family: 'Barlow Condensed', sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  .athletic-font {
+    font-family: "Barlow Condensed", sans-serif;
     text-transform: uppercase;
     letter-spacing: -0.02em;
   }
-  
+
   body {
     @apply font-display text-navy dark:text-slate-100 bg-background-light dark:bg-background-dark;
   }
@@ -26,10 +30,10 @@
   /* Diagonal Background */
   .diagonal-bg {
     background: repeating-linear-gradient(
-      45deg, 
-      transparent, 
-      transparent 40px, 
-      rgba(0, 168, 232, 0.03) 40px, 
+      45deg,
+      transparent,
+      transparent 40px,
+      rgba(0, 168, 232, 0.03) 40px,
       rgba(0, 168, 232, 0.03) 80px
     );
   }
@@ -43,6 +47,7 @@
   /* Card Hover Effect */
   .card-hover {
     transition: all 0.3s ease;
+    will-change: transform; /* FIX: GPU accelerated smooth animation */
   }
 
   .card-hover:hover {
@@ -53,16 +58,25 @@
   /* Metallic Badge */
   .metallic-badge {
     background: linear-gradient(135deg, #e2e8f0 0%, #ffffff 50%, #94a3b8 100%);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.8),
+      0 2px 4px rgba(0, 0, 0, 0.1);
     border: 1px solid #cbd5e1;
   }
 
   /* Footer Pitch Pattern */
   .footer-pitch {
-    background-image: 
-      linear-gradient(to top, rgba(0,168,232,0.1) 0%, transparent 100%), 
-      linear-gradient(90deg, transparent 49.5%, rgba(255,255,255,0.2) 50%, transparent 50.5%);
-    background-size: 100% 100%, 100px 100%;
+    background-image:
+      linear-gradient(to top, rgba(0, 168, 232, 0.1) 0%, transparent 100%),
+      linear-gradient(
+        90deg,
+        transparent 49.5%,
+        rgba(255, 255, 255, 0.2) 50%,
+        transparent 50.5%
+      );
+    background-size:
+      100% 100%,
+      100px 100%;
   }
 
   /* Hero Underline */
@@ -83,6 +97,21 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* FIX: ticker class added — was missing, animation was defined but never usable */
+  .animate-ticker {
+    animation: ticker 20s linear infinite;
+  }
+
+  /* FIX: keyframes moved inside @layer utilities — was in global scope before */
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 /* Custom Scrollbar */
@@ -102,19 +131,20 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
-@keyframes ticker {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        /* Ticker animation for Navbar */
+
+/* FIX: dark mode scrollbar — was missing */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+}
+
+/* FIX: duplicate .no-scrollbar removed — was defined twice (once in @layer, once globally) */
