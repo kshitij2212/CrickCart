@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
+import Wishlist from "./pages/Wishlist";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/admin/Dashboard";
 
@@ -37,57 +38,43 @@ export default function App() {
           {/* ===== PROTECTED USER ROUTES ===== */}
           <Route
             path="/cart"
-            element={
-              <ProtectedRoute>
-                <Cart />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute> <Cart/> </ProtectedRoute>}
           />
 
           <Route
             path="/checkout"
-            element={
-              <ProtectedRoute>
-                <Checkout />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute> <Checkout/> </ProtectedRoute>}
           />
 
           <Route
             path="/orders"
-            element={
-              <ProtectedRoute>
-                <Orders />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute> <Orders/> </ProtectedRoute>}
           />
 
           <Route
             path="/orders/:id"
-            element={
-              <ProtectedRoute>
-                <OrderDetails />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute> <OrderDetails/> </ProtectedRoute>}
+          />
+
+          <Route
+            path="/wishlist"
+            element={<ProtectedRoute> <Wishlist/> </ProtectedRoute>}
+          />
+
+          <Route
+            path="/orders/:id"
+            element={<ProtectedRoute> <OrderDetails/> </ProtectedRoute>}
           />
 
           <Route
             path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute> <Profile/> </ProtectedRoute>}
           />
 
           {/* ===== ADMIN ROUTE ===== */}
           <Route
             path="/admin"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
+            element={<ProtectedRoute> <Dashboard/> </ProtectedRoute>}
           />
 
         </Routes>
