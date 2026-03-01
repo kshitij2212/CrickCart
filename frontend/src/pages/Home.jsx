@@ -1,3 +1,7 @@
+import CategorySection from '../components/home/CategorySection';
+import FeaturedProducts from '../components/home/FeaturedProducts';
+import Newsletter from '../components/home/Newsletter';
+
 export default function Home() {
   return (
     <main className="max-w-7xl pt-12 mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -32,6 +36,12 @@ export default function Home() {
           
         </div>
       </section>
+      <CategorySection />
+
+      <FeaturedProducts />
+
+      <Newsletter />
+      
     </main>
   );
 }
