@@ -21,8 +21,11 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
 
-      {/* Navbar */}
-      <Navbar />
+      {/* Navbar - Hide on admin pages */}
+      <Routes>
+        <Route path="/admin/*" element={null} />
+        <Route path="*" element={<Navbar />} />
+      </Routes>
 
       {/* Main Content */}
       <main className="flex-grow">
@@ -38,50 +41,76 @@ export default function App() {
           {/* ===== PROTECTED USER ROUTES ===== */}
           <Route
             path="/cart"
-            element={<ProtectedRoute> <Cart/> </ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
           />
 
           <Route
             path="/checkout"
-            element={<ProtectedRoute> <Checkout/> </ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
           />
 
           <Route
             path="/orders"
-            element={<ProtectedRoute> <Orders/> </ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
           />
 
           <Route
             path="/orders/:id"
-            element={<ProtectedRoute> <OrderDetails/> </ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
           />
 
           <Route
             path="/wishlist"
-            element={<ProtectedRoute> <Wishlist/> </ProtectedRoute>}
-          />
-
-          <Route
-            path="/orders/:id"
-            element={<ProtectedRoute> <OrderDetails/> </ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <Wishlist />
+              </ProtectedRoute>
+            }
           />
 
           <Route
             path="/profile"
-            element={<ProtectedRoute> <Profile/> </ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
           />
 
-          {/* ===== ADMIN ROUTE ===== */}
+          {/* ===== ADMIN ROUTES ===== */}
           <Route
-            path="/admin"
-            element={<ProtectedRoute> <Dashboard/> </ProtectedRoute>}
+            path="/admin/*"
+            element={
+              <ProtectedRoute adminOnly>
+                <Dashboard />
+              </ProtectedRoute>
+            }
           />
 
         </Routes>
       </main>
 
-      {/* Footer */}
-      <Footer />
+      {/* Footer - Hide on admin pages */}
+      <Routes>
+        <Route path="/admin/*" element={null} />
+        <Route path="*" element={<Footer />} />
+      </Routes>
 
     </div>
   );

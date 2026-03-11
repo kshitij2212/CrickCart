@@ -1,0 +1,183 @@
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import productService from '../../services/productService';
+import toast from 'react-hot-toast';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
+
+const ProductManagement = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    productId: null,
+    productName: '',
+  });
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const data = await productService.getProducts();
+      setProducts(data.data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Failed to fetch products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (product) => {
+    setConfirmDialog({
+      isOpen: true,
+      productId: product.id,
+      productName: product.name,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      // await productService.deleteProduct(confirmDialog.productId);
+      
+      toast.success(
+        `"${confirmDialog.productName}" deleted successfully!`,
+        {
+          style: {
+            borderRadius: '8px',
+            background: '#10b981',
+            color: '#fff',
+          },
+        }
+      );
+      
+      fetchProducts();
+    } catch (error) {
+      toast.error('Failed to delete product', {
+        style: {
+          borderRadius: '8px',
+          background: '#ef4444',
+          color: '#fff',
+        },
+      });
+    }
+  };
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-black italic font-athletic text-[#00171f]">
+          PRODUCT MANAGEMENT
+        </h1>
+        <button className="flex items-center gap-2 bg-[#00a8e8] text-white px-6 py-3 font-bold rounded hover:bg-[#0095d1] transition">
+          <Plus className="w-5 h-5" />
+          Add Product
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#00a8e8] focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Products Table */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left py-4 px-6 font-bold">Image</th>
+                <th className="text-left py-4 px-6 font-bold">Name</th>
+                <th className="text-left py-4 px-6 font-bold">Price</th>
+                <th className="text-left py-4 px-6 font-bold">Stock</th>
+                <th className="text-left py-4 px-6 font-bold">Category</th>
+                <th className="text-left py-4 px-6 font-bold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00a8e8] mx-auto"></div>
+                  </td>
+                </tr>
+              ) : filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-8 text-gray-500">
+                    No products found
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((product) => (
+                  <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-4 px-6">
+                      <img
+                        src={product.images?.[0] || 'https://via.placeholder.com/50'}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    </td>
+                    <td className="py-4 px-6 font-medium">{product.name}</td>
+                    <td className="py-4 px-6 font-bold">₹{product.price}</td>
+                    <td className="py-4 px-6">
+                      <span
+                        className={`px-3 py-1 rounded text-xs font-bold ${
+                          product.countInStock > 10
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-red-100 text-red-600'
+                        }`}
+                      >
+                        {product.countInStock}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">{product.category?.name || 'N/A'}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(product)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, productId: null, productName: '' })}
+        onConfirm={handleDeleteConfirm}
+        title="DELETE PRODUCT"
+        message={`Are you sure you want to delete "${confirmDialog.productName}"? This action cannot be undone.`}
+        type="danger"
+      />
+    </div>
+  );
+};
+
+export default ProductManagement;

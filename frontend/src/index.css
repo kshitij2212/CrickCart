@@ -47,7 +47,7 @@
   /* Card Hover Effect */
   .card-hover {
     transition: all 0.3s ease;
-    will-change: transform; /* FIX: GPU accelerated smooth animation */
+    will-change: transform;
   }
 
   .card-hover:hover {
@@ -98,12 +98,7 @@
     scrollbar-width: none;
   }
 
-  /* FIX: ticker class added — was missing, animation was defined but never usable */
-  .animate-ticker {
-    animation: ticker 20s linear infinite;
-  }
-
-  /* FIX: keyframes moved inside @layer utilities — was in global scope before */
+  /* Ticker Animation */
   @keyframes ticker {
     0% {
       transform: translateX(0);
@@ -112,9 +107,25 @@
       transform: translateX(-50%);
     }
   }
+
+  /* Scale Up Animation */
+  @keyframes scaleUp {
+    from {
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-scale-up {
+    animation: scaleUp 0.2s ease-out;
+  }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Light Mode */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -132,7 +143,7 @@
   background: #555;
 }
 
-/* FIX: dark mode scrollbar — was missing */
+/* Custom Scrollbar - Dark Mode */
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-track {
     background: #1e293b;
@@ -146,5 +157,3 @@
     background: #64748b;
   }
 }
-
-/* FIX: duplicate .no-scrollbar removed — was defined twice (once in @layer, once globally) */

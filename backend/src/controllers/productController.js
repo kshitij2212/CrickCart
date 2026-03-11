@@ -82,7 +82,23 @@ exports.getAllProducts = async (req, res) => {
 
         let query = {};
 
-        if (category) query.category = category;
+        if (category) {
+            const mongoose = require('mongoose');
+            if (mongoose.Types.ObjectId.isValid(category)) {
+                query.category = category;
+            } else {
+                const Category = require('../models/Category');
+                const categoryDoc = await Category.findOne({ slug: category });
+                if (!categoryDoc) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Category not found"
+                    });
+                }
+                query.category = categoryDoc._id;
+            }
+        }
+
         if (brand) query.brand = brand;
         if (minPrice || maxPrice) {
             query.price = {};
