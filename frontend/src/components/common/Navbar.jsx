@@ -12,7 +12,7 @@ const TICKER_ITEMS = [
 
 const NAV_LINKS = [
   { label: "HOME", to: "/", active: true },
-  { label: "BATS", to: "/bats" },
+  { label: "BATS", to: "/category/690581565564155430000001" },
   { label: "BALLS", to: "/balls" },
   { label: "OTHERS", to: "/others" },
   { label: "SALE", to: "/sale", highlight: true },

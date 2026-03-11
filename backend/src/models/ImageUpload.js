@@ -1,9 +1,4 @@
-// FULL READY
-
-
-
 const mongoose = require("mongoose");
-
 const imageUploadSchema = new mongoose.Schema({
     images: [{
         type: String,

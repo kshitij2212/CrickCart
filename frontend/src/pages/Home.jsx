@@ -1,6 +1,7 @@
 import CategorySection from '../components/home/CategorySection';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import Newsletter from '../components/home/Newsletter';
+import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
@@ -28,11 +29,14 @@ export default function Home() {
             <p className="text-slate-400 italic max-w-md mt-2 font-medium">Engineered for performance. Trusted by legends. Elevate your game with our high-octane collection.</p>
           </div>
           
-          <button className="px-12 py-5 bg-primary text-navy font-black text-xl italic hover:bg-white transform -skew-x-12 transition-all flex items-center gap-4 group">
+          <Link 
+            to="/products" 
+            className="px-12 py-5 bg-primary text-navy font-black text-xl italic hover:bg-white transform -skew-x-12 transition-all flex items-center gap-4 group w-fit"
+            >
             <span className="transform skew-x-12 flex items-center gap-2">
               EXPLORE GEAR <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform">bolt</span>
             </span>
-          </button>
+          </Link>
           
         </div>
       </section>

@@ -9,7 +9,6 @@ const {
     clearCart
 } = require("../controllers/cartControllers");
 
-// All cart routes are protected
 router.get("/", protect, getCart);
 router.post("/add", protect, addToCart);
 router.put("/:itemId", protect, updateCartItem);

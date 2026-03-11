@@ -90,7 +90,6 @@ import productService from '../../services/productService';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// ─── Fallback placeholder products (used when API unavailable) ────────────────
 const PLACEHOLDER_PRODUCTS = [
   { id: 1, name: 'Cricket Bat', price: 1299, image: 'https://images.unsplash.com/photo-1624880357913-a8539238245b?w=300&h=400&fit=crop', badge: 'PRO' },
   { id: 2, name: 'Cricket Ball', price: 399,  image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=300&h=400&fit=crop', badge: 'NEW' },
