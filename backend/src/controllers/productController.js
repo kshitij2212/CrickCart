@@ -48,7 +48,9 @@ exports.createProduct = async (req, res) => {
             images: req.body.images,
             countInStock: req.body.countInStock,
             specifications: req.body.specifications,
-            isFeatured: req.body.isFeatured
+            isFeatured: req.body.isFeatured,
+            rating: req.body.rating,
+            numReviews: req.body.numReviews,
         }).save();
 
         return res.status(201).json({

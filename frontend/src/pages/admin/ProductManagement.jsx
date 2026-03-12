@@ -1,13 +1,16 @@
+// src/pages/admin/ProductManagement.jsx
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import productService from '../../services/productService';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import AddProductModal from './AddProductModal'; 
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 👈 Add state
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     productId: null,
@@ -75,7 +78,10 @@ const ProductManagement = () => {
         <h1 className="text-4xl font-black italic font-athletic text-[#00171f]">
           PRODUCT MANAGEMENT
         </h1>
-        <button className="flex items-center gap-2 bg-[#00a8e8] text-white px-6 py-3 font-bold rounded hover:bg-[#0095d1] transition">
+        <button 
+          onClick={() => setIsAddModalOpen(true)} // 👈 Open modal
+          className="flex items-center gap-2 bg-[#00a8e8] text-white px-6 py-3 font-bold rounded hover:bg-[#0095d1] transition"
+        >
           <Plus className="w-5 h-5" />
           Add Product
         </button>
@@ -166,6 +172,13 @@ const ProductManagement = () => {
           </table>
         </div>
       </div>
+
+      {/* Add Product Modal */}
+      <AddProductModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={fetchProducts}
+      />
 
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
