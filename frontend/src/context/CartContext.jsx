@@ -35,7 +35,7 @@ export const CartProvider = ({ children }) => {
     try {
       const { data } = await api.put(`/cart/${itemId}`, { quantity });
       setCart(data.data);
-      toast.success('Cart updated!');
+      // toast.success('Cart updated!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update cart');
       throw error;

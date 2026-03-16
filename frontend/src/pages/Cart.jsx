@@ -4,19 +4,25 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { useAuth } from '../hooks/useAuth'; // add this
+import { useAuth } from '../hooks/useAuth';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth(); // add this
+  const { isAuthenticated } = useAuth();
   const { cart, fetchCart, updateCartItem, removeFromCart, loading } = useCart();
   const [updating, setUpdating] = useState({});
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    itemId: null,
+    itemName: '',
+  });
 
   useEffect(() => {
-    if (isAuthenticated) { // only fetch if logged in
+    if (isAuthenticated) {
       fetchCart();
-    }
-  }, [isAuthenticated]); // depend on isAuthenticated
+}
+  }, [isAuthenticated]);
 
   const handleUpdateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
@@ -24,20 +30,35 @@ const Cart = () => {
     setUpdating({ ...updating, [itemId]: true });
     try {
       await updateCartItem(itemId, newQuantity);
+      toast.success('Quantity updated!', { duration: 1500 });
     } catch (error) {
       console.error('Update error:', error);
+      toast.error('Failed to update quantity');
     } finally {
       setUpdating({ ...updating, [itemId]: false });
     }
   };
 
-  const handleRemoveItem = async (itemId) => {
-    if (window.confirm('Remove this item from cart?')) {
-      try {
-        await removeFromCart(itemId);
-      } catch (error) {
-        console.error('Remove error:', error);
-      }
+  const handleRemoveClick = (item) => {
+    setConfirmDialog({
+      isOpen: true,
+      itemId: item.id,
+      itemName: item.product?.name || 'this item',
+    })};
+
+  const handleRemoveConfirm = async () => {
+    try {
+      await removeFromCart(confirmDialog.itemId);
+      setConfirmDialog({ isOpen: false, itemId: null, itemName: '' });
+    } catch (error) {
+      console.error('Remove error:', error);
+      toast.error('Failed to remove item', {
+        style: {
+          borderRadius: '8px',
+          background: '#ef4444',
+          color: '#fff',
+        },
+      });
     }
   };
 
@@ -70,8 +91,7 @@ const Cart = () => {
           </p>
           <Link
             to="/products"
-            className="inline-block px-8 py-4 bg-[#00a8e8] text-white font-black italic hover:bg-[#0095d1] transition"
-          >
+            className="inline-block px-8 py-4 bg-[#00a8e8] text-white font-black italic hover:bg-[#0095d1] transition">
             SHOP NOW
           </Link>
         </div>
@@ -98,14 +118,12 @@ const Cart = () => {
                   className="bg-white rounded-lg shadow-md p-6"
                 >
                   <div className="flex gap-6">
-                    {/* Image */}
                     <img
                       src={item.product?.images?.[0] || 'https://via.placeholder.com/150'}
                       alt={item.product?.name}
                       className="w-24 h-24 object-cover rounded"
                     />
 
-                    {/* Details */}
                     <div className="flex-1">
                       <h3 className="text-lg font-black italic font-athletic">
                         {item.product?.name}
@@ -120,7 +138,7 @@ const Cart = () => {
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                             disabled={updating[item.id]}
-                            className="p-2 hover:bg-gray-100 disabled:opacity-50"
+                            className="p-2 hover:bg-gray-100 disabled:opacity-50 transition"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
@@ -128,17 +146,18 @@ const Cart = () => {
                           <button
                             onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                             disabled={updating[item.id]}
-                            className="p-2 hover:bg-gray-100 disabled:opacity-50"
+                            className="p-2 hover:bg-gray-100 disabled:opacity-50 transition"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
                         </div>
 
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="text-red-500 hover:text-red-700 transition"
+                          onClick={() => handleRemoveClick(item)}
+                          className="flex items-center gap-2 text-red-500 hover:text-red-700 transition font-bold"
                         >
                           <Trash2 className="w-5 h-5" />
+                          <span className="hidden sm:inline">Remove</span>
                         </button>
                       </div>
                     </div>
@@ -205,6 +224,16 @@ const Cart = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirm Remove Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, itemId: null, itemName: '' })}
+        onConfirm={handleRemoveConfirm}
+        title="REMOVE FROM CART"
+        message={`Are you sure you want to remove "${confirmDialog.itemName}" from your cart?`}
+        type="danger"
+      />
     </div>
   );
 };

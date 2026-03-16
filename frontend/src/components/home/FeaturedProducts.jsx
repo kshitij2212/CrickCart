@@ -1,85 +1,3 @@
-// import { useState, useEffect } from 'react';
-// import { ChevronLeft, ChevronRight } from 'lucide-react';
-// import { motion } from 'framer-motion';
-// import ProductCard from '../products/ProductCard';
-// import productService from '../../services/productService';
-
-// const FeaturedProducts = () => {
-//   const [products, setProducts] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     fetchFeaturedProducts();
-//   }, []);
-
-//   const fetchFeaturedProducts = async () => {
-//     try {
-//       const data = await productService.getFeaturedProducts();
-//       setProducts(data.data || []);
-//     } catch (error) {
-//       console.error('Error fetching featured products:', error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <section className="mb-20">
-//         <div className="animate-pulse">
-//           <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-//             {[...Array(4)].map((_, i) => (
-//               <div key={i} className="bg-gray-200 h-96 rounded-lg"></div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-//     );
-//   }
-
-//   return (
-//     <section className="mb-20">
-//       <div className="flex items-end justify-between mb-10 border-b-2 border-slate-200 dark:border-slate-800 pb-4">
-//         <div>
-//           <h2 className="text-4xl md:text-5xl font-black italic text-[#00171f] dark:text-white leading-none font-athletic">
-//             FEATURED GEAR
-//           </h2>
-//           <p className="text-[#00a8e8] font-bold italic tracking-widest mt-1">
-//             THE PRO SELECTION
-//           </p>
-//         </div>
-//         <div className="flex gap-2">
-//           <button className="p-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-[#00a8e8] text-[#00171f] dark:text-white transition-all">
-//             <ChevronLeft className="w-5 h-5" />
-//           </button>
-//           <button className="p-3 bg-[#00171f] text-white hover:bg-[#00a8e8] hover:text-[#00171f] transition-all">
-//             <ChevronRight className="w-5 h-5" />
-//           </button>
-//         </div>
-//       </div>
-
-//       <motion.div
-//         initial={{ opacity: 0, y: 20 }}
-//         animate={{ opacity: 1, y: 0 }}
-//         transition={{ duration: 0.5 }}
-//         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
-//       >
-//         {products.map((product) => (
-//           <ProductCard key={product.id} product={product} />
-//         ))}
-//       </motion.div>
-//     </section>
-//   );
-// };
-
-// export default FeaturedProducts;
-
-
-// FeaturedProducts.jsx
-// Merges: FeaturedProducts (grid + framer-motion) + ProductCarousel (GSAP scroll-pinned carousel)
-// Result: A dual-mode section — grid view AND an immersive horizontal scroll carousel
-
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, Grid, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -87,9 +5,9 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ProductCard from '../products/ProductCard';
 import productService from '../../services/productService';
+import { Link } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
-
 const PLACEHOLDER_PRODUCTS = [
   { id: 1, name: 'Cricket Bat', price: 1299, image: 'https://images.unsplash.com/photo-1624880357913-a8539238245b?w=300&h=400&fit=crop', badge: 'PRO' },
   { id: 2, name: 'Cricket Ball', price: 399,  image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=300&h=400&fit=crop', badge: 'NEW' },
@@ -104,7 +22,7 @@ const PLACEHOLDER_PRODUCTS = [
 // ─── Carousel Item ─────────────────────────────────────────────────────────────
 const CarouselItem = ({ product, index }) => {
   const [hovered, setHovered] = useState(false);
-
+  const productId = product.id || product._id;
   return (
     <div
       className="carousel-item relative flex-shrink-0 cursor-pointer group"
@@ -115,7 +33,7 @@ const CarouselItem = ({ product, index }) => {
       {/* Image */}
       <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl">
         <img
-          src={product.image || product.imageUrl}
+          src={product.images?.[0] || product.imageUrl}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
@@ -148,9 +66,10 @@ const CarouselItem = ({ product, index }) => {
           className="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
           style={{ opacity: hovered ? 1 : 0 }}
         >
+          <Link to={`/products/${productId}`} className="block">
           <button className="bg-[#00a8e8] text-[#00171f] font-black italic px-6 py-3 flex items-center gap-2 hover:bg-white transition-colors">
             VIEW PRODUCT <ArrowRight className="w-4 h-4" />
-          </button>
+          </button></Link>
         </div>
       </div>
     </div>
