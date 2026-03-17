@@ -1,4 +1,3 @@
-// CategorySection.jsx - Updated
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -30,14 +29,11 @@ const CategorySection = () => {
     fetchCategories();
   }, []);
 
-  // Fallback image handler
   const handleImageError = (e) => {
     e.target.src = 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=600&fit=crop';
   };
 
-  // Get image URL with fallback
   const getImageUrl = (category) => {
-    // Try different image path structures
     const imageUrl = 
       category.image?.url || 
       category.image || 
@@ -87,6 +83,17 @@ const CategorySection = () => {
 
   return (
     <section className="mb-16">
+      <div className="flex items-end justify-between mb-10 border-b-2 border-slate-200 dark:border-slate-800 pb-4">
+        <div>
+          <h2 className="text-4xl md:text-5xl font-black italic text-[#00171f] dark:text-white leading-none">
+            CATEGORIES
+          </h2>
+          <p className="text-[#00a8e8] font-bold italic tracking-widest mt-1">
+            ALL YOU NEED.....
+          </p>
+        </div>
+      </div>
+
       <motion.div
         variants={containerVariants}
         initial="hidden"
