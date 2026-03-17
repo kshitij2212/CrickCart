@@ -1,16 +1,19 @@
-// src/pages/admin/ProductManagement.jsx
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import productService from '../../services/productService';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import AddProductModal from './AddProductModal'; 
+import AddProductModal from './AddProductModal';
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // 👈 Add state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // ✅ CHANGE 1: Added editingProduct state
+  const [editingProduct, setEditingProduct] = useState(null);
+
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     productId: null,
@@ -33,6 +36,12 @@ const ProductManagement = () => {
     }
   };
 
+  // ✅ CHANGE 2: handleEditClick — sets editingProduct and opens modal
+  const handleEditClick = (product) => {
+    setEditingProduct(product);
+    setIsAddModalOpen(true);
+  };
+
   const handleDeleteClick = (product) => {
     setConfirmDialog({
       isOpen: true,
@@ -43,29 +52,19 @@ const ProductManagement = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      // await productService.deleteProduct(confirmDialog.productId);
-      
-      toast.success(
-        `"${confirmDialog.productName}" deleted successfully!`,
-        {
-          style: {
-            borderRadius: '8px',
-            background: '#10b981',
-            color: '#fff',
-          },
-        }
-      );
-      
+      await productService.deleteProduct(confirmDialog.productId);
+      toast.success(`"${confirmDialog.productName}" deleted successfully!`);
+      setConfirmDialog({ isOpen: false, productId: null, productName: '' });
       fetchProducts();
     } catch (error) {
-      toast.error('Failed to delete product', {
-        style: {
-          borderRadius: '8px',
-          background: '#ef4444',
-          color: '#fff',
-        },
-      });
+      toast.error('Failed to delete product');
     }
+  };
+
+  // ✅ CHANGE 3: handleModalClose — resets editingProduct on close
+  const handleModalClose = () => {
+    setIsAddModalOpen(false);
+    setEditingProduct(null);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -78,8 +77,11 @@ const ProductManagement = () => {
         <h1 className="text-4xl font-black italic font-athletic text-[#00171f]">
           PRODUCT MANAGEMENT
         </h1>
-        <button 
-          onClick={() => setIsAddModalOpen(true)} // 👈 Open modal
+        <button
+          onClick={() => {
+            setEditingProduct(null); // ✅ CHANGE 4: Reset editing when Add button clicked
+            setIsAddModalOpen(true);
+          }}
           className="flex items-center gap-2 bg-[#00a8e8] text-white px-6 py-3 font-bold rounded hover:bg-[#0095d1] transition"
         >
           <Plus className="w-5 h-5" />
@@ -133,28 +135,31 @@ const ProductManagement = () => {
                   <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <img
-                        src={product.images?.[0] || 'https://via.placeholder.com/50'}
+                        src={product.images?.[0] || 'https://placehold.co/50x50?text=No+Image'}
                         alt={product.name}
                         className="w-12 h-12 object-cover rounded"
+                        onError={(e) => { e.target.src = 'https://placehold.co/50x50?text=No+Image'; }}
                       />
                     </td>
                     <td className="py-4 px-6 font-medium">{product.name}</td>
                     <td className="py-4 px-6 font-bold">₹{product.price}</td>
                     <td className="py-4 px-6">
-                      <span
-                        className={`px-3 py-1 rounded text-xs font-bold ${
-                          product.countInStock > 10
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-red-100 text-red-600'
-                        }`}
-                      >
+                      <span className={`px-3 py-1 rounded text-xs font-bold ${
+                        product.countInStock > 10
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-red-100 text-red-600'
+                      }`}>
                         {product.countInStock}
                       </span>
                     </td>
                     <td className="py-4 px-6">{product.category?.name || 'N/A'}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
-                        <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                        {/* ✅ CHANGE 5: Edit button now calls handleEditClick */}
+                        <button
+                          onClick={() => handleEditClick(product)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
@@ -173,14 +178,14 @@ const ProductManagement = () => {
         </div>
       </div>
 
-      {/* Add Product Modal */}
+      {/* ✅ CHANGE 6: Modal now receives editingProduct as `product` prop */}
       <AddProductModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={handleModalClose}
         onSuccess={fetchProducts}
+        product={editingProduct}
       />
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         onClose={() => setConfirmDialog({ isOpen: false, productId: null, productName: '' })}

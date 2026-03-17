@@ -32,6 +32,18 @@ export const productService = {
     });
     return data;
   },
+
+  // Delete product
+  deleteProduct: async (id) => {
+    const { data } = await api.delete(`/products/${id}`);
+    return data;
+  },
+
+  // Update product
+  updateProduct: async (id, productData) => {
+    const { data } = await api.put(`/products/${id}`, productData);
+    return data;
+  },
 };
 
 export default productService;
