@@ -185,7 +185,7 @@ const Products = () => {
                 </button>
                 {categories.map((category) => (
                   <button
-                    key={category.id}
+                    key={category._id || category.id}
                     onClick={() => handleCategoryChange(category.id)}
                     className={`w-full text-left px-4 py-2 rounded font-bold transition ${
                       selectedCategory === category.id
@@ -368,7 +368,7 @@ const Products = () => {
                     </button>
                     {categories.map((category) => (
                       <button
-                        key={category.id}
+                        key={category._id || category.id}
                         onClick={() => {
                           handleCategoryChange(category.id);
                           setShowMobileFilters(false);

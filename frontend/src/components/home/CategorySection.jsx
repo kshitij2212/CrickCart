@@ -101,9 +101,9 @@ const CategorySection = () => {
         className="grid grid-cols-2 md:grid-cols-4 gap-6"
       >
         {categories.map((category) => (
-          <motion.div key={category._id} variants={itemVariants}>
+          <motion.div key={category.id} variants={itemVariants}>
             <Link
-              to={`/products?category=${category.slug || category._id}`}
+              to={`/products?category=${category.slug || category.id}`}
               className="group relative h-64 overflow-hidden card-hover transition-all duration-300 cursor-pointer border-b-4 border-primary block rounded-lg"
             >
               <img

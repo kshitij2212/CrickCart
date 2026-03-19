@@ -59,7 +59,7 @@ const CategoryManagement = () => {
     }
 
     if (editingCategory) {
-      await categoryService.updateCategory(editingCategory._id, {
+      await categoryService.updateCategory(editingCategory.id, {
         name: formData.name,
         color: formData.color,
         images: imageUrls.length > 0 ? imageUrls : formData.images,
@@ -100,7 +100,7 @@ const CategoryManagement = () => {
   const handleDeleteClick = (category) => {
     setConfirmDialog({
       isOpen: true,
-      categoryId: category._id,
+      categoryId: category.id,
       categoryName: category.name,
     });
   };
@@ -158,7 +158,7 @@ const CategoryManagement = () => {
         ) : (
           categories.map((category) => (
             <div
-              key={category._id}
+              key={category.id}
               className="bg-white rounded-lg shadow hover:shadow-lg overflow-hidden"
             >
               <div className="h-48 bg-gray-100">
