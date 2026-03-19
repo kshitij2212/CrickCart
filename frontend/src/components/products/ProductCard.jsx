@@ -50,7 +50,7 @@ const ProductCard = ({ product }) => {
       <Star
         key={i}
         className={`w-4 h-4 ${
-          i < rating ? 'text-yellow-500 fill-yellow-500' : 'text-slate-300'
+          i < rating ? 'text-yellow-400 fill-yellow-300' : 'text-slate-300'
         }`}
       />
     ));
@@ -106,7 +106,7 @@ const ProductCard = ({ product }) => {
           </div>
 
           <div className="px-6 pt-6 pb-2">
-            <h4 className="text-lg md:text-xl font-black italic font-athletic line-clamp-2">
+            <h4 className="text-lg md:text-xl font-weight-200 italic font-athletic line-clamp-2">
               {product.name}
             </h4>
             {/* Rating */}
@@ -120,7 +120,7 @@ const ProductCard = ({ product }) => {
         <div className="px-6 pb-6 pt-2 flex items-center justify-between">
           <div>
             <span className="text-2xl md:text-3xl font-black italic text-[#00171f] dark:text-white">
-              ₹{product.finalPrice || product.price}
+              ₹{Math.round(product.finalPrice || product.price)}
             </span>
             {product.discount && product.discount > 0 && (
               <span className="text-sm text-slate-400 line-through ml-2">

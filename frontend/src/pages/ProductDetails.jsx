@@ -1,14 +1,448 @@
-const ProductDetailsPage = () => {
-  return (
-    <div className="min-h-screen diagonal-bg py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl md:text-5xl font-black italic font-athletic text-[#00171f] mb-8">
-          PRODUCT DETAILS
-        </h1>
-        <p className="text-center text-gray-500 py-20">Product details - Coming soon</p>
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Heart, ShoppingCart, Minus, Plus, ChevronRight, Star, CheckCircle, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuth';
+import { useWishlist } from '../hooks/useWishlist';
+import productService from '../services/productService';
+import ProductCard from '../components/products/ProductCard';
+import toast from 'react-hot-toast';
+
+const ProductDetails = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { toggleWishlist, isWishlisted: checkIsWishlisted } = useWishlist();
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('description');
+  const [relatedProducts, setRelatedProducts] = useState([]);
+
+  const wishlisted = product ? checkIsWishlisted(product._id) : false;
+
+  useEffect(() => {
+    fetchProduct();
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+      const data = await productService.getProductById(id);
+      setProduct(data.data);
+
+      if (data.data.category) {
+        const related = await productService.getProducts({
+          category: data.data.category._id,
+          limit: 4,
+        });
+        setRelatedProducts(related.data.filter((p) => p._id !== id).slice(0, 4));
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      toast.error('Product not found');
+      navigate('/products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add to cart');
+      navigate('/login');
+      return;
+    }
+
+    if (quantity > product.countInStock) {
+      toast.error(`Only ${product.countInStock} items available`);
+      return;
+    }
+
+    try {
+      const productId = product._id || product.id || id;
+      await addToCart(productId, quantity);
+    } catch (error) {
+      console.error('Add to cart error:', error);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to continue');
+      navigate('/login');
+      return;
+    }
+    await handleAddToCart();
+    navigate('/checkout');
+  };
+
+  const handleWishlist = async () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add to wishlist');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const productId = product._id || product.id || id;
+      await toggleWishlist(productId);
+    } catch (error) {
+      console.error('Wishlist error:', error);
+    }
+  };
+
+  const incrementQuantity = () => {
+    if (quantity < product.countInStock) {
+      setQuantity(quantity + 1);
+    } else {
+      if(product.countInStock === 0){
+        toast.error(`Out of stock`);
+      }
+      else{
+        toast.error(`Only ${product.countInStock} items available`);
+      }
+    }
+  };
+
+  const decrementQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(quantity - 1);
+    }
+  };
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${
+          i < Math.round(rating)
+            ? 'text-yellow-400 fill-yellow-300' : 'text-slate-300'
+        }`}
+      />
+    ));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen diagonal-bg flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#00a8e8]"></div>
       </div>
+    );
+  }
+
+  if (!product) {
+    return null;
+  }
+
+  return (
+    <div className="diagonal-bg min-h-screen">
+      <nav className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 pt-8 pb-4">
+        <div className="flex items-center space-x-2 text-xs uppercase tracking-widest font-bold font-athletic italic text-gray-600">
+          <Link to="/" className="hover:text-[#00a8e8] transition">
+            SHOP
+          </Link>
+          <ChevronRight className="w-3 h-3" />
+          <Link
+            to={`/products?category=${product.category?.slug}`}
+            className="hover:text-[#00a8e8] transition"
+          >
+            {product.category?.name || 'PRODUCTS'}
+          </Link>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-[#00a8e8]">{product.name}</span>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 pb-20">
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
+          <motion.section
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full lg:w-[60%] space-y-6"
+          >
+            <div className="relative aspect-[3/3] bg-slate-50 rounded-xl overflow-hidden mesh-texture group border border-slate-100">
+              {product.isFeatured && (
+                <div className="absolute top-6 left-6 z-10 bg-[#00a8e8] text-white font-athletic font-black italic px-4 py-1 transform -skew-x-12 shadow-lg">
+                  <span className="inline-block transform skew-x-12 uppercase tracking-tighter">
+                    NEW RELEASE
+                  </span>
+                </div>
+              )}
+
+              {product.discount > 0 && (
+                <div className="absolute top-6 right-6 z-10 bg-[#ef4444] text-white font-athletic font-black italic px-3 py-1 transform -skew-x-12 shadow-lg">
+                  <span className="inline-block transform skew-x-12">
+                    {product.discount}% OFF
+                  </span>
+                </div>
+              )}
+
+              <img
+                alt={product.name}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                src={product.images?.[selectedImage] || 'https://via.placeholder.com/600'}
+              />
+              <div className="absolute inset-0 pointer-events-none opacity-10 bg-gradient-to-tr from-[#00a8e8]/10 to-transparent"></div>
+            </div>
+
+            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+              {product.images?.map((image, index) => (
+                <div
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden cursor-pointer transition-all ${
+                    selectedImage === index
+                      ? 'border-2 border-[#00a8e8] shadow-lg'
+                      : 'border border-slate-100 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    className="w-full h-full object-cover"
+                    src={image}
+                    alt={`${product.name} view ${index + 1}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full lg:w-[40%] space-y-8"
+          >
+            <div>
+              <h1 className="text-3xl md:text-4xl font-athletic font-black italic uppercase leading-none text-[#00171f] mb-4">
+                {product.name}
+              </h1>
+
+              <div className="flex items-center space-x-4">
+                <div className="flex">{renderStars(product.rating || 0)}</div>
+                <span className="text-xs font-semibold text-gray-600">
+                  ({product.numReviews || 0} REVIEWS)
+                </span>
+              </div>
+            </div>
+
+            <div className="p-6 bg-white rounded-2xl border-l-4 border-[#00a8e8] shadow-lg relative">
+              <div className="flex flex-col space-y-1">
+                {product.discount > 0 && (
+                  <span className="text-sm text-gray-600 line-through decoration-[#ef4444] decoration-2">
+                    ₹{product.price}
+                  </span>
+                )}
+
+                <div className="flex items-baseline space-x-4">
+                  <span className="text-4xl md:text-5xl font-athletic font-black italic text-[#00171f]">
+                    ₹{product.finalPrice || product.price}
+                  </span>
+
+                  {product.discount > 0 && (
+                    <span className="bg-[#ef4444] text-white px-2 py-1 rounded text-xs font-black font-athletic italic transform -skew-x-12">
+                      <span className="inline-block transform skew-x-12">
+                        {product.discount}% OFF
+                      </span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center space-x-2">
+                {product.countInStock > 0 ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 text-[#10b981]" />
+                    <span className="text-[#10b981] font-bold text-xs uppercase tracking-wider">
+                      In Stock
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4 text-[#ef4444]" />
+                    <span className="text-[#ef4444] font-bold text-xs uppercase tracking-wider">
+                      Out of Stock
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-y-4 mt-6 pt-6 border-t border-slate-100">
+                <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
+                  <span className="text-lg">🚚</span>
+                  <span>Minimal Shipping</span>
+                </div>
+                <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
+                  <span className="text-lg">↩️</span>
+                  <span>Easy Returns</span>
+                </div>
+                <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
+                  <span className="text-lg">🛡️</span>
+                  <span>1yr Warranty</span>
+                </div>
+                <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
+                  <span className="text-lg">✓</span>
+                  <span>Authentic</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1">
+                <button
+                  onClick={decrementQuantity}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-lg transition-colors text-slate-600"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="w-12 text-center font-bold text-xl font-athletic italic text-[#00171f]">
+                  {String(quantity).padStart(2, '0')}
+                </span>
+                <button
+                  onClick={incrementQuantity}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-lg transition-colors text-slate-600"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              <button
+                onClick={handleWishlist}
+                className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:text-[#ef4444] hover:border-[#ef4444] transition-all group"
+              >
+                <Heart
+                  className={`w-5 h-5 transition-transform group-active:scale-125 ${
+                    wishlisted ? 'fill-[#ef4444] text-[#ef4444]' : ''
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <button
+                onClick={handleAddToCart}
+                disabled={product.countInStock === 0}
+                className="group bg-[#00a8e8] text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg hover:brightness-110 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="transform skew-x-12 flex items-center justify-center space-x-2">
+                  <ShoppingCart className="w-5 h-5" />
+                  <span>ADD TO CART</span>
+                </div>
+              </button>
+
+              <div className="relative group">
+                <div className="absolute inset-0 speed-lines opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+                <button
+                  onClick={handleBuyNow}
+                  disabled={product.countInStock === 0}
+                  className="w-full bg-[#00171f] text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg hover:brightness-110 transition-all active:scale-[0.98] relative z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="transform skew-x-12 flex items-center justify-center space-x-2">
+                    <span className="text-2xl">⚡</span>
+                    <span>BUY NOW</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </motion.section>
+        </div>
+
+        <section className="mt-24">
+          <div className="flex space-x-8 mb-1 border-b border-slate-100 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => setActiveTab('description')}
+              className={`pb-4 font-athletic font-black italic uppercase tracking-widest transition-colors relative ${
+                activeTab === 'description'
+                  ? 'text-[#00a8e8]'
+                  : 'text-slate-400 hover:text-[#00171f]'
+              }`}
+            >
+              DESCRIPTION
+              {activeTab === 'description' && (
+                <div className="absolute bottom-0 left-0 w-full h-[8px] bg-gradient-to-r from-[#00a8e8] to-transparent transform -skew-x-12 translate-y-1/2"></div>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`pb-4 font-athletic font-black italic uppercase tracking-widest transition-colors relative ${
+                activeTab === 'reviews'
+                  ? 'text-[#00a8e8]'
+                  : 'text-slate-400 hover:text-[#00171f]'
+              }`}
+            >
+              REVIEWS ({product.numReviews || 0})
+              {activeTab === 'reviews' && (
+                <div className="absolute bottom-0 left-0 w-full h-[8px] bg-gradient-to-r from-[#00a8e8] to-transparent transform -skew-x-12 translate-y-1/2"></div>
+              )}
+            </button>
+          </div>
+
+          <div className="mt-8 bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+            {activeTab === 'description' ? (
+              <div>
+                <h3 className="font-athletic font-black italic text-2xl uppercase text-[#00a8e8] mb-6">
+                  PRODUCT DESCRIPTION
+                </h3>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {product.description}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-athletic font-black italic text-2xl uppercase text-[#00a8e8] mb-6">
+                  CUSTOMER REVIEWS
+                </h3>
+                <div className="text-center py-12">
+                  <p className="text-gray-500 italic">
+                    No reviews yet. Be the first to review this product!
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {relatedProducts.length > 0 && (
+          <section className="mt-24">
+            <h2 className="text-4xl font-athletic font-black italic uppercase tracking-tighter mb-10 flex items-center space-x-4">
+              <span className="text-[#00171f]">YOU MAY ALSO LIKE</span>
+              <div className="flex-grow h-[2px] bg-gradient-to-r from-[#00a8e8]/20 to-transparent"></div>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((item) => (<ProductCard key={item._id} product={item} />))}
+            </div>
+          </section>
+        )}
+      </main>
+
+      <style>{`
+        .mesh-texture {
+          background-image: radial-gradient(
+            circle at 2px 2px,
+            rgba(0, 168, 232, 0.08) 1px,
+            transparent 0
+          );
+          background-size: 24px 24px;
+        }
+        .speed-lines {
+          background-image: repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 10px,
+            rgba(0, 168, 232, 0.05) 10px,
+            rgba(0, 168, 232, 0.05) 12px
+          );
+        }
+      `}</style>
     </div>
   );
 };
 
-export default ProductDetailsPage;
+export default ProductDetails;
