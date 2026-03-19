@@ -7,13 +7,22 @@ import { useCart } from '../../hooks/useCart';
 import { useWishlist } from '../../hooks/useWishlist';
 
 const ProductCard = ({ product }) => {
+
+  console.log('ProductCard product:', product);
+  console.log('ProductCard product.id:', product.id);
+
+   if (!product || !product.id) {
+    console.error('Invalid product:', product);
+    return null;
+  }
+
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
   // Fix #2: safe id
-  const productId = product.id || product._id;
+  const productId = product.id;
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
@@ -95,7 +104,7 @@ const ProductCard = ({ product }) => {
         </button>
 
         {/* Image + Name → clickable link */}
-        <Link to={`/products/${productId}`} className="block">
+        <Link to={`/products/${product.id}`} className="block">
           <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-800">
             <img
               alt={product.name}

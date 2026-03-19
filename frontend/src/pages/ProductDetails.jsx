@@ -23,7 +23,7 @@ const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState('description');
   const [relatedProducts, setRelatedProducts] = useState([]);
 
-  const wishlisted = product ? checkIsWishlisted(product._id) : false;
+  const wishlisted = product ? checkIsWishlisted(product.id) : false;
 
   useEffect(() => {
     fetchProduct();
@@ -38,13 +38,13 @@ const ProductDetails = () => {
 
       if (data.data.category) {
         const related = await productService.getProducts({
-          category: data.data.category._id,
+          category: data.data.category.id,
           limit: 4,
         });
-        setRelatedProducts(related.data.filter((p) => p._id !== id).slice(0, 4));
+        setRelatedProducts(related.data.filter((p) => p.id !== id).slice(0, 4));
       }
     } catch (error) {
-      console.error('Error fetching product:', error);
+      console.error('❌ Error fetching product:', error);
       toast.error('Product not found');
       navigate('/products');
     } finally {
@@ -65,8 +65,7 @@ const ProductDetails = () => {
     }
 
     try {
-      const productId = product._id || product.id || id;
-      await addToCart(productId, quantity);
+      await addToCart(product.id, quantity);
     } catch (error) {
       console.error('Add to cart error:', error);
     }
@@ -90,8 +89,7 @@ const ProductDetails = () => {
     }
 
     try {
-      const productId = product._id || product.id || id;
-      await toggleWishlist(productId);
+      await toggleWishlist(product.id);
     } catch (error) {
       console.error('Wishlist error:', error);
     }
@@ -101,10 +99,9 @@ const ProductDetails = () => {
     if (quantity < product.countInStock) {
       setQuantity(quantity + 1);
     } else {
-      if(product.countInStock === 0){
-        toast.error(`Out of stock`);
-      }
-      else{
+      if (product.countInStock === 0) {
+        toast.error('Out of stock');
+      } else {
         toast.error(`Only ${product.countInStock} items available`);
       }
     }
@@ -119,10 +116,11 @@ const ProductDetails = () => {
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
-        key={i}
+        key={`star-${i}`}
         className={`w-4 h-4 ${
           i < Math.round(rating)
-            ? 'text-yellow-400 fill-yellow-300' : 'text-slate-300'
+            ? 'text-yellow-400 fill-yellow-300'
+            : 'text-slate-300'
         }`}
       />
     ));
@@ -195,7 +193,7 @@ const ProductDetails = () => {
             <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
               {product.images?.map((image, index) => (
                 <div
-                  key={index}
+                  key={`thumb-${index}`}
                   onClick={() => setSelectedImage(index)}
                   className={`flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden cursor-pointer transition-all ${
                     selectedImage === index
@@ -416,7 +414,9 @@ const ProductDetails = () => {
               <div className="flex-grow h-[2px] bg-gradient-to-r from-[#00a8e8]/20 to-transparent"></div>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((item) => (<ProductCard key={item._id} product={item} />))}
+              {relatedProducts.map((item) => (
+                <ProductCard key={item.id} product={item} />
+              ))}
             </div>
           </section>
         )}

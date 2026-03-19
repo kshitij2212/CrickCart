@@ -22,7 +22,7 @@ const PLACEHOLDER_PRODUCTS = [
 // ─── Carousel Item ─────────────────────────────────────────────────────────────
 const CarouselItem = ({ product, index }) => {
   const [hovered, setHovered] = useState(false);
-  const productId = product.id || product._id;
+  const productId = product.id;
   return (
     <div
       className="carousel-item relative flex-shrink-0 cursor-pointer group"

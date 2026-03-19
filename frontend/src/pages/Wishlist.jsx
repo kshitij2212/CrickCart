@@ -69,7 +69,7 @@ const Wishlist = () => {
             {wishlist.map((item) => {
               const product = item.product;
               if (!product) return null;
-              const productId = product.id || product._id;
+              const productId = product.id;
               const imageUrl = product.images?.[0] || product.image || 'https://placehold.co/400x400?text=No+Image';
 
               return (
