@@ -240,7 +240,7 @@ const ProductDetails = () => {
 
                 <div className="flex items-baseline space-x-4">
                   <span className="text-4xl md:text-5xl font-athletic font-black italic text-[#00171f]">
-                    ₹{product.finalPrice || product.price}
+                    ₹{Math.round(product.finalPrice || product.price)}
                   </span>
 
                   {product.discount > 0 && (

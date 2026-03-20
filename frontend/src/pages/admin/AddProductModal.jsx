@@ -3,11 +3,12 @@ import { X, Upload, Trash2, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import productService from '../../services/productService';
+import brandService from '../../services/brandService';  // ✅ Add this import
 
-// ✅ CHANGE 1: Added `product = null` prop for edit mode
 const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);  // ✅ Add brands state
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [hoveredStar, setHoveredStar] = useState(0);
@@ -25,10 +26,10 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
     isFeatured: false,
   });
 
-  // ✅ CHANGE 2: Pre-fill form if editing an existing product
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
+      fetchBrands();  // ✅ Add this
       if (product) {
         setFormData({
           name: product.name || '',
@@ -37,12 +38,11 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
           discount: product.discount || '',
           countInStock: product.countInStock || '',
           category: product.category?._id || product.category || '',
-          brand: product.brand || '',
+          brand: product.brand?._id || product.brand || '',
           rating: product.rating || 0,
           numReviews: product.numReviews || 0,
           isFeatured: product.isFeatured || false,
         });
-        // ✅ CHANGE 3: Show existing images as previews in edit mode
         setImagePreviews(product.images || []);
       }
     }
@@ -54,6 +54,17 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
       setCategories(data.data || []);
     } catch (error) {
       toast.error('Failed to load categories');
+    }
+  };
+
+  // ✅ Add fetchBrands function
+  const fetchBrands = async () => {
+    try {
+      const data = await brandService.getBrands();
+      setBrands(data.data || []);
+    } catch (error) {
+      console.error('Error fetching brands:', error);
+      toast.error('Failed to load brands');
     }
   };
 
@@ -308,15 +319,18 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             </div>
             <div>
               <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">BRAND *</label>
-              <input
-                type="text"
+              <select
                 name="brand"
                 value={formData.brand}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded focus:border-[#00a8e8] focus:outline-none"
-                placeholder="Enter brand name"
-              />
+              >
+                <option value="">Select brand</option>
+                {brands.map((brand) => (
+                  <option key={brand._id} value={brand._id}>{brand.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 

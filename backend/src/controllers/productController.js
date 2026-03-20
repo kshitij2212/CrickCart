@@ -27,7 +27,20 @@ exports.createProduct = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Invalid Category"
-            });
+            })}
+
+        if (req.body.brand) {
+            const mongoose = require('mongoose');
+            if (mongoose.Types.ObjectId.isValid(req.body.brand)) {
+                const Brand = require('../models/Brand');
+                const brand = await Brand.findById(req.body.brand);
+                if (!brand) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid Brand"
+                    });
+                }
+            }
         }
 
         if (!req.body.images || req.body.images.length === 0) {
@@ -52,6 +65,9 @@ exports.createProduct = async (req, res) => {
             rating: req.body.rating,
             numReviews: req.body.numReviews,
         }).save();
+
+        await product.populate('category', 'name slug color');
+        await product.populate('brand', 'name slug logo');
 
         return res.status(201).json({
             success: true,
@@ -101,12 +117,21 @@ exports.getAllProducts = async (req, res) => {
             }
         }
 
-        if (brand) query.brand = brand;
+        if (brand) {
+            const mongoose = require('mongoose');
+            if (mongoose.Types.ObjectId.isValid(brand)) {
+                query.brand = brand;
+            } else {
+                query.brand = { $regex: brand, $options: 'i' };
+            }
+        }
+
         if (minPrice || maxPrice) {
             query.price = {};
             if (minPrice) query.price.$gte = Number(minPrice);
             if (maxPrice) query.price.$lte = Number(maxPrice);
         }
+        
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -114,10 +139,12 @@ exports.getAllProducts = async (req, res) => {
                 { brand: { $regex: search, $options: 'i' } }
             ];
         }
+        
         if (featured) query.isFeatured = featured === 'true';
 
         const products = await Product.find(query)
             .populate('category', 'name slug color')
+            .populate('brand', 'name slug logo')
             .sort(sort)
             .limit(Number(limit))
             .skip((Number(page) - 1) * Number(limit));
@@ -133,7 +160,6 @@ exports.getAllProducts = async (req, res) => {
             data: products
         });
     } catch (error) {
-        console.error(error);
         res.status(500).json({
             success: false,
             message: 'Server Error',
@@ -146,6 +172,7 @@ exports.getFeaturedProducts = async (req, res) => {
     try {
         const products = await Product.find({ isFeatured: true })
             .populate('category', 'name slug color')
+            .populate('brand', 'name slug logo')
             .limit(10)
             .sort('-createdAt');
 
@@ -167,6 +194,7 @@ exports.getProductById = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id)
             .populate('category', 'name slug color')
+            .populate('brand', 'name slug logo');
 
         if (!product) {
             return res.status(404).json({
@@ -210,6 +238,21 @@ exports.updateProduct = async (req, res) => {
             }
         }
 
+        // ✅ ADD: If brand is being updated, validate it
+        if (req.body.brand) {
+            const mongoose = require('mongoose');
+            if (mongoose.Types.ObjectId.isValid(req.body.brand)) {
+                const Brand = require('../models/Brand');
+                const brand = await Brand.findById(req.body.brand);
+                if (!brand) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Invalid Brand"
+                    });
+                }
+            }
+        }
+
         // If name is being updated, regenerate slug
         if (req.body.name && req.body.name !== product.name) {
             req.body.slug = slugify(req.body.name, { lower: true }) + '-' + Date.now();
@@ -222,7 +265,9 @@ exports.updateProduct = async (req, res) => {
                 new: true,
                 runValidators: true
             }
-        ).populate('category', 'name slug color');
+        )
+        .populate('category', 'name slug color')
+        .populate('brand', 'name slug logo');  // ✅ ADD THIS
 
         res.status(200).json({
             success: true,

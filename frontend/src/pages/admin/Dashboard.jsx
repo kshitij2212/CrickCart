@@ -8,7 +8,8 @@ import {
   FolderTree,
   LogOut,
   Menu,
-  X
+  X,
+  Tag
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -18,6 +19,7 @@ import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
 import CategoryManagement from './CategoryManagement';
 import UserManagement from './UserManagement';
+import BrandManagement from './BrandManagement';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -47,6 +49,11 @@ const Dashboard = () => {
       icon: Package,
       path: '/admin/products',
     },
+    {
+    name: 'Brands',          
+    icon: Tag,                
+    path: '/admin/brands',
+  },
     {
       name: 'Orders',
       icon: ShoppingCart,
@@ -136,6 +143,7 @@ const Dashboard = () => {
           <Routes>
             <Route index element={<Overview />} />
             <Route path="products" element={<ProductManagement />} />
+            <Route path="brands" element={<BrandManagement />} />
             <Route path="orders" element={<OrderManagement />} />
             <Route path="categories" element={<CategoryManagement />} />
             <Route path="users" element={<UserManagement />} />

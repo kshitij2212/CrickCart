@@ -186,9 +186,9 @@ const Products = () => {
                 {categories.map((category) => (
                   <button
                     key={category._id || category.id}
-                    onClick={() => handleCategoryChange(category.id)}
+                    onClick={() => handleCategoryChange(category._id)}
                     className={`w-full text-left px-4 py-2 rounded font-bold transition ${
-                      selectedCategory === category.id
+                      selectedCategory === category._id
                         ? 'bg-[#00a8e8] text-white'
                         : 'hover:bg-slate-100 text-gray-700'
                     }`}
@@ -370,11 +370,11 @@ const Products = () => {
                       <button
                         key={category._id || category.id}
                         onClick={() => {
-                          handleCategoryChange(category.id);
+                          handleCategoryChange(category._id);
                           setShowMobileFilters(false);
                         }}
                         className={`w-full text-left px-4 py-2 rounded font-bold ${
-                          selectedCategory === category.id
+                          selectedCategory === category._id
                             ? 'bg-[#00a8e8] text-white' 
                             : 'hover:bg-slate-100'
                         }`}
