@@ -103,7 +103,7 @@ const Wishlist = () => {
                         {product.name}
                       </h4>
                       <p className="text-xl font-black italic text-[#00171f] mt-1">
-                        ₹{product.finalPrice || product.price}
+                        ₹{Math.round(product.finalPrice || product.price)}
                       </p>
                     </div>
                   </Link>

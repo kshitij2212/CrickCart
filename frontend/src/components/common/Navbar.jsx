@@ -11,11 +11,11 @@ const TICKER_ITEMS = [
 ];
 
 const NAV_LINKS = [
-  { label: "HOME", to: "/", active: true },
-  { label: "BATS", to: "" },
-  { label: "BALL", to: "" },
-  { label: "OTHERS", to: "/others" },
-  { label: "SALE", to: "/sale", highlight: true },
+  { label: "HOME", to: "/" },
+  { label: "BATS", to: "/products?category=bats" },
+  { label: "BALL", to: "/products?category=balls" },
+  { label: "OTHERS", to: "/products?category=others" },
+  { label: "SALE", to: "/products?sale=true" },
 ];
 
 export default function Navbar() {
@@ -32,10 +32,10 @@ export default function Navbar() {
           style={{ animation: "ticker 20s linear infinite" }}
         >
           {[...Array(2)].map((_, i) => (
-            <span key={i} className="flex">
+            <span key={`ticker-set-${i}`} className="flex">
               {TICKER_ITEMS.map((item, j) => (
                 <span
-                  key={j}
+                  key={`ticker-${i}-${j}`}
                   className="text-[11px] tracking-widest text-[#00171f] px-8 flex items-center gap-2"
                 >
                   <span className="w-1 h-1 rounded-full bg-[#00171f] opacity-40" />
@@ -55,7 +55,8 @@ export default function Navbar() {
             {/* Logo */}
             <Link
               to="/"
-              className="text-3xl font-black italic tracking-tighter">
+              className="text-3xl font-black italic tracking-tighter hover:opacity-80 transition"
+            >
               CRICK<span className="text-[#00a8e8]">CART</span>
             </Link>
 
@@ -63,7 +64,7 @@ export default function Navbar() {
             <div className="hidden md:flex flex-1 max-w-lg mx-8">
               <div className="relative w-full">
                 <input
-                  className="w-full pl-4 pr-10 py-2 border-2 border-slate-700 bg-slate-900 focus:border-[#00a8e8] focus:ring-0 text-sm placeholder-slate-500 italic font-bold transition-colors"
+                  className="w-full pl-4 pr-10 py-2 border-2 border-slate-700 bg-slate-900 focus:border-[#00a8e8] focus:ring-0 text-sm placeholder-slate-500 italic font-bold transition-colors rounded"
                   placeholder="SEARCH ELITE GEAR..."
                   type="text"
                   value={searchQuery}
@@ -82,6 +83,7 @@ export default function Navbar() {
               <Link
                 to="/wishlist"
                 className="flex items-center justify-center w-10 h-10 hover:text-red-500 transition"
+                title="Wishlist"
               >
                 <span className="material-symbols-outlined text-[24px] leading-none">
                   favorite
@@ -91,7 +93,9 @@ export default function Navbar() {
               {/* Profile / Login */}
               <Link
                 to={isAuthenticated ? '/profile' : '/login'}
-                className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition">
+                className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition"
+                title={isAuthenticated ? 'Profile' : 'Login'}
+              >
                 <span className="material-symbols-outlined text-[24px] leading-none">
                   person
                 </span>
@@ -100,7 +104,9 @@ export default function Navbar() {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition">
+                className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition"
+                title="Cart"
+              >
                 <span className="material-symbols-outlined text-[24px] leading-none">
                   shopping_cart
                 </span>
@@ -110,6 +116,7 @@ export default function Navbar() {
               <button
                 className="md:hidden p-2 hover:text-[#00a8e8] transition"
                 onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Toggle menu"
               >
                 <span className="material-symbols-outlined text-[26px]">
                   {menuOpen ? "close" : "menu"}
@@ -120,18 +127,18 @@ export default function Navbar() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="bg-[#00a8e8]/10 border-t border-white/10">
+        <nav className="hidden md:block bg-[#00a8e8]/10 border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 flex justify-center space-x-8 py-3">
-            {NAV_LINKS.map((link) => (
+            {NAV_LINKS.map((link, index) => (
               <Link
-                key={link.to}
+                key={`nav-${index}`}
                 to={link.to}
                 className={`text-xs font-black italic transition-colors ${
-                  link.highlight
-                    ? "text-red-500 hover:text-red-200"
-                    : link.active
-                    ? "text-[#00a8e8] border-b-2 border-[#00a8e8]"
-                    : "text-slate-400 hover:text-white"
+                  link.label === "SALE"
+                    ? "text-red-500 hover:text-red-300"
+                    : link.to === "/"
+                    ? "text-slate-400 hover:text-white"
+                    : "text-slate-400 hover:text-[#00a8e8]"
                 }`}
               >
                 {link.label}
@@ -140,18 +147,35 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Mobile Search */}
+        {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden bg-slate-900 border-t border-white/10">
-            <div className="px-4 py-3">
+            <div className="px-4 py-3 border-b border-white/10">
               <input
-                className="w-full pl-4 pr-10 py-2 border-2 border-slate-700 bg-slate-800 focus:border-[#00a8e8] text-sm placeholder-slate-500 italic font-bold"
+                className="w-full pl-4 pr-10 py-2 border-2 border-slate-700 bg-slate-800 focus:border-[#00a8e8] focus:ring-0 text-sm placeholder-slate-500 italic font-bold rounded"
                 placeholder="SEARCH ELITE GEAR..."
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            
+            <nav className="px-4 py-4 space-y-3">
+              {NAV_LINKS.map((link, index) => (
+                <Link
+                  key={`mobile-nav-${index}`}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className={`block text-sm font-black italic transition py-2 ${
+                    link.label === "SALE"
+                      ? "text-red-500 hover:text-red-300"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         )}
       </header>

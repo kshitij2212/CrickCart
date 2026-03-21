@@ -22,45 +22,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               style: {
                 background: '#fff',
                 color: '#1f2937',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              },
-            }}
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',}}}
           />
-          {/* <Toaster 
-  position="top-right"
-  toastOptions={{
-    duration: 3000,
-    success: {
-      style: {
-        background: '#10b981',
-        color: '#fff',
-        fontWeight: 'bold',
-      },
-      iconTheme: {
-        primary: '#fff',
-        secondary: '#10b981',
-      },
-    },
-    error: {
-      style: {
-        background: '#ef4444',
-        color: '#fff',
-        fontWeight: 'bold',
-      },
-      iconTheme: {
-        primary: '#fff',
-        secondary: '#ef4444',
-      },
-    },
-    loading: {
-      style: {
-        background: '#00a8e8',
-        color: '#fff',
-        fontWeight: 'bold',
-      },
-    },
-  }}
-/> */}
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

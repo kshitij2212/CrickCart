@@ -12,6 +12,8 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  
+  // Filters state
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
@@ -19,10 +21,12 @@ const Products = () => {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || '');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
 
+  // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Fetch products when filters change
   useEffect(() => {
     fetchProducts();
   }, [selectedCategory, minPrice, maxPrice, onSale, sortBy, searchQuery]);
@@ -30,7 +34,6 @@ const Products = () => {
   const fetchCategories = async () => {
     try {
       const data = await categoryService.getCategories();
-      console.log('📂 Categories:', data);
       setCategories(data.data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -50,20 +53,11 @@ const Products = () => {
       if (onSale) params.sale = true;
       if (sortBy) params.sort = sortBy;
       
-      console.log('📤 Fetching with params:', params);
-      
       const response = await productService.getProducts(params);
-      
-      console.log('📥 API Response:', response);
-      
-      const productList = response.data || [];
-      
-      console.log('✅ Products:', productList);
-      
-      setProducts(productList);
+      setProducts(response.data || []);
       
     } catch (error) {
-      console.error('❌ Error fetching products:', error);
+      console.error('Error fetching products:', error);
       setProducts([]);
     } finally {
       setLoading(false);
@@ -71,13 +65,11 @@ const Products = () => {
   };
 
   const handleCategoryChange = (categoryId) => {
-    console.log('🔄 Category selected:', categoryId);
     setSelectedCategory(categoryId);
     
     const params = new URLSearchParams(searchParams);
     if (categoryId) {
       params.set('category', categoryId);
-      console.log('🔄 Category selected:', categoryId);
     } else {
       params.delete('category');
     }
@@ -89,16 +81,10 @@ const Products = () => {
     setMaxPrice(max);
     
     const params = new URLSearchParams(searchParams);
-    if (min) {
-      params.set('minPrice', min);
-    } else {
-      params.delete('minPrice');
-    }
-    if (max) {
-      params.set('maxPrice', max);
-    } else {
-      params.delete('maxPrice');
-    }
+    if (min) params.set('minPrice', min);
+    else params.delete('minPrice');
+    if (max) params.set('maxPrice', max);
+    else params.delete('maxPrice');
     setSearchParams(params);
   };
 
@@ -130,13 +116,14 @@ const Products = () => {
     return 'ALL PRODUCTS';
   };
 
+  // Loading skeleton
   if (loading) {
     return (
       <div className="diagonal-bg min-h-screen">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="animate-pulse">
+              <div key={`skeleton-${i}`} className="animate-pulse">
                 <div className="bg-gray-200 aspect-square rounded-lg mb-4"></div>
                 <div className="bg-gray-200 h-4 rounded mb-2"></div>
                 <div className="bg-gray-200 h-4 w-2/3 rounded"></div>
@@ -164,7 +151,7 @@ const Products = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Desktop Filters Sidebar */}
+          {/* ========== DESKTOP FILTERS SIDEBAR ========== */}
           <aside className="hidden lg:block w-64 space-y-6">
             
             {/* Categories */}
@@ -185,10 +172,10 @@ const Products = () => {
                 </button>
                 {categories.map((category) => (
                   <button
-                    key={category._id || category.id}
-                    onClick={() => handleCategoryChange(category._id)}
+                    key={category._id || category.id || category.slug}
+                    onClick={() => handleCategoryChange(category.id)}
                     className={`w-full text-left px-4 py-2 rounded font-bold transition ${
-                      selectedCategory === category._id
+                      selectedCategory === category.id
                         ? 'bg-[#00a8e8] text-white'
                         : 'hover:bg-slate-100 text-gray-700'
                     }`}
@@ -204,31 +191,21 @@ const Products = () => {
               <h3 className="font-athletic font-black italic text-lg text-[#00171f] mb-4">
                 PRICE RANGE
               </h3>
-              <div className="mb-1">
+              <div className="space-y-1">
+                {[
+                  { label: 'Under ₹5,000', min: '', max: '5000' },
+                  { label: '₹5,000 - ₹10,000', min: '5000', max: '10000' },
+                  { label: '₹10,000 - ₹20,000', min: '10000', max: '20000' },
+                  { label: 'Above ₹20,000', min: '20000', max: '' },
+                ].map((range, idx) => (
                   <button
-                    onClick={() => handlePriceRange('', '5000')}
-                    className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
+                    key={`price-range-${idx}`}
+                    onClick={() => handlePriceRange(range.min, range.max)}
+                    className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm transition"
                   >
-                    Under ₹5,000
+                    {range.label}
                   </button>
-                  <button
-                    onClick={() => handlePriceRange('5000', '10000')}
-                    className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
-                  >
-                    ₹5,000 - ₹10,000
-                  </button>
-                  <button
-                    onClick={() => handlePriceRange('10000', '20000')}
-                    className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
-                  >
-                    ₹10,000 - ₹20,000
-                  </button>
-                  <button
-                    onClick={() => handlePriceRange('20000', '')}
-                    className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
-                  >
-                    Above ₹20,000
-                  </button>
+                ))}
               </div>
             </div>
 
@@ -256,7 +233,7 @@ const Products = () => {
             )}
           </aside>
 
-          {/* Main Content */}
+          {/* ========== MAIN CONTENT ========== */}
           <main className="flex-1">
             
             {/* Mobile Controls */}
@@ -317,9 +294,9 @@ const Products = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => (
+                {products.map((product, index) => (
                   <ProductCard 
-                    key={product.id || product._id}
+                    key={product._id || product.id || `product-${index}`}
                     product={product} 
                   />
                 ))}
@@ -328,7 +305,7 @@ const Products = () => {
           </main>
         </div>
 
-        {/* Mobile Filter Modal */}
+        {/* ========== MOBILE FILTER MODAL ========== */}
         {showMobileFilters && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div 
@@ -368,13 +345,13 @@ const Products = () => {
                     </button>
                     {categories.map((category) => (
                       <button
-                        key={category._id || category.id}
+                        key={ category.id || category._id || category.slug}
                         onClick={() => {
-                          handleCategoryChange(category._id);
+                          handleCategoryChange(category.id);
                           setShowMobileFilters(false);
                         }}
                         className={`w-full text-left px-4 py-2 rounded font-bold ${
-                          selectedCategory === category._id
+                          selectedCategory === category.id
                             ? 'bg-[#00a8e8] text-white' 
                             : 'hover:bg-slate-100'
                         }`}
@@ -388,42 +365,25 @@ const Products = () => {
                 {/* Price Range */}
                 <div>
                   <h3 className="font-athletic font-black italic text-lg mb-3">PRICE RANGE</h3>
+                  <div className="space-y-1">
+                    {[
+                      { label: 'Under ₹5,000', min: '', max: '5000' },
+                      { label: '₹5,000 - ₹10,000', min: '5000', max: '10000' },
+                      { label: '₹10,000 - ₹20,000', min: '10000', max: '20000' },
+                      { label: 'Above ₹20,000', min: '20000', max: '' },
+                    ].map((range, idx) => (
                       <button
+                        key={`mobile-price-${idx}`}
                         onClick={() => {
-                          handlePriceRange('', '5000');
+                          handlePriceRange(range.min, range.max);
                           setShowMobileFilters(false);
                         }}
                         className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
                       >
-                        Under ₹5,000
+                        {range.label}
                       </button>
-                      <button
-                        onClick={() => {
-                          handlePriceRange('5000', '10000');
-                          setShowMobileFilters(false);
-                        }}
-                        className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
-                      >
-                        ₹5,000 - ₹10,000
-                      </button>
-                      <button
-                        onClick={() => {
-                          handlePriceRange('10000', '20000');
-                          setShowMobileFilters(false);
-                        }}
-                        className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
-                      >
-                        ₹10,000 - ₹20,000
-                      </button>
-                      <button
-                        onClick={() => {
-                          handlePriceRange('20000', '');
-                          setShowMobileFilters(false);
-                        }}
-                        className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
-                      >
-                        Above ₹20,000
-                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Sale Filter */}

@@ -12,10 +12,8 @@ const CategorySection = () => {
     const fetchCategories = async () => {
       try {
         const apiUrl = `${import.meta.env.VITE_API_URL}/categories`;
-        console.log('Fetching from:', apiUrl);
         
         const { data } = await axios.get(apiUrl);
-        console.log('Categories data:', data);
         
         setCategories(data.data || data.categories || data);
       } catch (error) {
@@ -41,8 +39,6 @@ const CategorySection = () => {
       category.images?.[0] ||
       category.imageUrl ||
       'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400&h=600&fit=crop';
-    
-    console.log('Image URL for', category.name, ':', imageUrl);
     return imageUrl;
   };
 
@@ -100,10 +96,13 @@ const CategorySection = () => {
         animate="visible"
         className="grid grid-cols-2 md:grid-cols-4 gap-6"
       >
-        {categories.map((category) => (
-          <motion.div key={category.id} variants={itemVariants}>
+        {categories.map((category, index) => (
+          <motion.div 
+            key={category.id || category._id || category.slug || `category-${index}`}
+            variants={itemVariants}
+          >
             <Link
-              to={`/products?category=${category.slug || category.id}`}
+              to={`/products?category=${category.id || category._id || category.slug}`}
               className="group relative h-64 overflow-hidden card-hover transition-all duration-300 cursor-pointer border-b-4 border-primary block rounded-lg"
             >
               <img

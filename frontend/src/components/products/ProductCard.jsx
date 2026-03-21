@@ -8,9 +8,6 @@ import { useWishlist } from '../../hooks/useWishlist';
 
 const ProductCard = ({ product }) => {
 
-  console.log('ProductCard product:', product);
-  console.log('ProductCard product.id:', product.id);
-
    if (!product || !product.id) {
     console.error('Invalid product:', product);
     return null;
