@@ -1,128 +1,171 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Trash2, ShoppingCart } from 'lucide-react';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
-import { useAuth } from '../hooks/useAuth';
+import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Wishlist = () => {
-  const { wishlist, fetchWishlist, removeFromWishlist, loading } = useWishlist();
+  const { wishlist, loading, fetchWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
 
+  // ✅ Fetch wishlist on mount
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchWishlist();
-    }
-  }, [isAuthenticated]);
-
-  const handleAddToCart = async (productId) => {
-    try {
-      await addToCart(productId, 1);
-    } catch (error) {
-      console.error('Add to cart error:', error);
-    }
-  };
+    fetchWishlist();
+  }, []);
 
   const handleRemove = async (productId) => {
     try {
       await removeFromWishlist(productId);
     } catch (error) {
-      console.error('Remove error:', error);
+      console.error('Error removing item:', error);
     }
+  };
+
+  const handleAddToCart = (item) => {
+    // ✅ Extract product from nested structure
+    const product = item.product || item;
+    addToCart(product);
+    toast.success('Added to cart');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00a8e8]"></div>
       </div>
     );
   }
 
+  if (wishlist.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="w-32 h-32 mx-auto mb-6 bg-slate-100 rounded-full flex items-center justify-center"
+          >
+            <span className="material-symbols-outlined text-6xl text-slate-400">
+              favorite_border
+            </span>
+          </motion.div>
+          <h2 className="text-3xl font-black italic text-[#00171f] mb-4">
+            YOUR WISHLIST IS EMPTY
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Start adding your favorite cricket gear!
+          </p>
+          <Link
+            to="/products"
+            className="inline-block bg-[#00a8e8] text-white font-black italic px-8 py-3 rounded hover:bg-[#0095d1] transition"
+          >
+            SHOP NOW
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen diagonal-bg py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        <h1 className="text-4xl md:text-5xl font-black italic font-athletic text-[#00171f] mb-2">
-          MY WISHLIST
-        </h1>
-        <p className="text-[#00a8e8] font-bold italic mb-8">
-          {wishlist.length} ITEMS
-        </p>
-
-        {wishlist.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Heart className="w-20 h-20 text-gray-300 mb-4" />
-            <h2 className="text-2xl font-black italic text-gray-400 mb-4">YOUR WISHLIST IS EMPTY</h2>
-            <p className="text-gray-500 mb-8">Save items you love to your wishlist</p>
-            <Link
-              to="/products"
-              className="px-8 py-4 bg-[#00a8e8] text-white font-black italic hover:bg-[#0095d1] transition"
-            >
-              SHOP NOW
-            </Link>
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black italic text-[#00171f] mb-2">
+              MY WISHLIST
+            </h1>
+            <p className="text-[#00a8e8] font-bold italic">
+              {wishlist.length} {wishlist.length === 1 ? 'ITEM' : 'ITEMS'}
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {wishlist.map((item) => {
-              const product = item.product;
-              if (!product) return null;
-              const productId = product.id;
-              const imageUrl = product.images?.[0] || product.image || 'https://placehold.co/400x400?text=No+Image';
+        </div>
 
-              return (
-                <motion.div
-                  key={item._id || item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-slate-100 group relative"
-                >
-                  {/* Remove button */}
+        {/* Wishlist Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {wishlist.map((item) => {
+            // ✅ Extract product - handle both structures
+            const product = item.product || item;
+            const productId = product._id || product.id;
+
+            return (
+              <motion.div
+                key={item._id || productId}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-slate-100"
+              >
+                {/* Delete Button */}
+                <div className="relative">
                   <button
                     onClick={() => handleRemove(productId)}
-                    className="absolute top-3 right-3 z-10 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition"
+                    className="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur p-2 rounded-full hover:bg-red-50 transition group"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 text-gray-600 group-hover:text-red-600 transition" />
                   </button>
 
                   {/* Image */}
                   <Link to={`/products/${productId}`}>
-                    <div className="aspect-square overflow-hidden bg-slate-50">
+                    <div className="h-64 bg-slate-100">
                       <img
-                        src={imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        onError={(e) => { e.target.src = 'https://placehold.co/400x400?text=No+Image'; }}
+                        src={product.images?.[0] || 'https://via.placeholder.com/300'}
+                        alt={product.name || 'Product'}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/300?text=No+Image';
+                        }}
                       />
                     </div>
+                  </Link>
+                </div>
 
-                    <div className="px-4 pt-4 pb-2">
-                      <h4 className="font-black italic font-athletic line-clamp-2 text-[#00171f]">
-                        {product.name}
-                      </h4>
-                      <p className="text-xl font-black italic text-[#00171f] mt-1">
-                        ₹{Math.round(product.finalPrice || product.price)}
-                      </p>
-                    </div>
+                {/* Content */}
+                <div className="p-4">
+                  <Link to={`/products/${productId}`}>
+                    <h3 className="font-athletic font-black italic text-lg text-[#00171f] mb-2 uppercase line-clamp-2 hover:text-[#00a8e8] transition">
+                      {product.name || 'Product Name'}
+                    </h3>
                   </Link>
 
-                  {/* Add to cart */}
-                  <div className="px-4 pb-4">
-                    <button
-                      onClick={() => handleAddToCart(productId)}
-                      className="w-full flex items-center justify-center gap-2 bg-[#00171f] text-white font-black py-2.5 hover:bg-[#00a8e8] transition"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      ADD TO CART
-                    </button>
+                  {/* Price */}
+                  <div className="mb-4">
+                    {product.discount && product.discount > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-black text-[#00a8e8]">
+                          ₹{Math.round(product.price * (1 - product.discount / 100))}
+                        </span>
+                        <span className="text-sm text-gray-400 line-through">
+                          ₹{product.price}
+                        </span>
+                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded font-bold">
+                          -{product.discount}%
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-2xl font-black text-[#00a8e8]">
+                        ₹{product.price || 0}
+                      </span>
+                    )}
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
+
+                  {/* Add to Cart Button */}
+                  <button
+                    onClick={() => handleAddToCart(item)}
+                    className="w-full bg-[#00171f] text-white font-black italic py-3 rounded hover:bg-[#00a8e8] transition flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    ADD TO CART
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
