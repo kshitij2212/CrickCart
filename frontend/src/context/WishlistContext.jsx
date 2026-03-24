@@ -8,24 +8,26 @@ export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    const fetchWishlist = async () => {
+    const fetchWishlist = async (showLoading = true) => {
         try {
-            setLoading(true);
+            if (showLoading) setLoading(true);
             const data = await wishlistService.getWishlist();
-            setWishlist(data.data.items || []);
+            setWishlist(data.data?.items || data.data || []);
         } catch (error) {
             console.error('Error fetching wishlist:', error);
+            setWishlist([]);
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     };
 
     const toggleWishlist = async (productId) => {
         try {
             const data = await wishlistService.toggleWishlist(productId);
-            setWishlist(data.data.items || []);
-            toast.success(data.message);
+            await fetchWishlist(false);
+            toast.success(data.message || 'Wishlist updated');
         } catch (error) {
+            console.error('Toggle error:', error);
             toast.error('Error updating wishlist');
             throw error;
         }
@@ -33,11 +35,17 @@ export const WishlistProvider = ({ children }) => {
 
     const removeFromWishlist = async (productId) => {
         try {
-            const data = await wishlistService.removeFromWishlist(productId);
-            setWishlist(data.data.items || []);
+            // Optimistic update — remove instantly from UI
+            setWishlist(prev => prev.filter(item =>
+                (item.product?._id || item.product?.id || item.product) !== productId
+            ));
+            await wishlistService.removeFromWishlist(productId);
+            await fetchWishlist(false);
             toast.success('Removed from wishlist');
         } catch (error) {
+            console.error('Remove error:', error);
             toast.error('Error removing from wishlist');
+            await fetchWishlist(false); // revert on error
             throw error;
         }
     };
@@ -46,6 +54,8 @@ export const WishlistProvider = ({ children }) => {
         return wishlist.some(item =>
             item.product?.id === productId ||
             item.product?._id === productId ||
+            item.id === productId ||
+            item._id === productId ||
             item.product === productId
         );
     };

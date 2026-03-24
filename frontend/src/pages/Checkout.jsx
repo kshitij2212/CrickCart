@@ -183,7 +183,7 @@ const Checkout = () => {
                     type="text"
                     value={shippingInfo.fullName}
                     onChange={(e) => setShippingInfo({ ...shippingInfo, fullName: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-slate-10 border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="Virat Kohli"
                   />
                 </div>
@@ -197,7 +197,7 @@ const Checkout = () => {
                     type="text"
                     value={shippingInfo.address}
                     onChange={(e) => setShippingInfo({ ...shippingInfo, address: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-slate-10 border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="123 Cricket Stadium Road"
                   />
                 </div>
@@ -210,7 +210,7 @@ const Checkout = () => {
                     type="text"
                     value={shippingInfo.city}
                     onChange={(e) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-slate-10 border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="Mumbai"
                   />
                 </div>
@@ -223,7 +223,7 @@ const Checkout = () => {
                     type="text"
                     value={shippingInfo.state}
                     onChange={(e) => setShippingInfo({ ...shippingInfo, state: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-slate-10 border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="Maharashtra"
                   />
                 </div>
@@ -236,7 +236,7 @@ const Checkout = () => {
                     type="text"
                     value={shippingInfo.zipCode}
                     onChange={(e) => setShippingInfo({ ...shippingInfo, zipCode: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-slate-10 border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="400001"
                     maxLength="6"
                   />
@@ -251,7 +251,7 @@ const Checkout = () => {
                     type="tel"
                     value={shippingInfo.phone}
                     onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-slate-10 border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="+91 98765 43210"
                     maxLength="10"
                   />
@@ -284,7 +284,7 @@ const Checkout = () => {
                       className={`flex items-center justify-between p-5 cursor-pointer rounded-xl transition-all border-2 ${
                         shippingMethod === option.id
                           ? 'border-[#00a8e8] bg-[#00a8e8]/5 shadow-md'
-                          : 'border-slate-200 hover:border-[#00a8e8]/50 hover:shadow-sm'
+                          : 'border-slate-250 hover:border-[#00a8e8]/50 hover:shadow-sm'
                       }`}
                     >
                       <div className="flex items-center gap-4">
@@ -364,7 +364,7 @@ const Checkout = () => {
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="grid grid-cols-2 gap-4 p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200"
+                  className="grid grid-cols-2 gap-4 p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-250"
                 >
                   <div className="col-span-full">
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">
@@ -374,7 +374,7 @@ const Checkout = () => {
                       type="text"
                       value={cardInfo.name}
                       onChange={(e) => setCardInfo({ ...cardInfo, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                      className="w-full px-4 py-3 bg-white border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                       placeholder="VIRAT KOHLI"
                     />
                   </div>
@@ -387,7 +387,7 @@ const Checkout = () => {
                         type="text"
                         value={cardInfo.cardNumber}
                         onChange={(e) => setCardInfo({ ...cardInfo, cardNumber: e.target.value })}
-                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition pr-12"
+                        className="w-full px-4 py-3 bg-white border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition pr-12"
                         placeholder="1234 5678 9012 3456"
                         maxLength="19"
                       />
@@ -402,7 +402,7 @@ const Checkout = () => {
                       type="text"
                       value={cardInfo.expiry}
                       onChange={(e) => setCardInfo({ ...cardInfo, expiry: e.target.value })}
-                      className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                      className="w-full px-4 py-3 bg-white border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                       placeholder="MM/YY"
                       maxLength="5"
                     />
@@ -415,7 +415,7 @@ const Checkout = () => {
                       type="password"
                       value={cardInfo.cvv}
                       onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
-                      className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                      className="w-full px-4 py-3 bg-white border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none ransition"
                       placeholder="•••"
                       maxLength="3"
                     />
@@ -427,14 +427,14 @@ const Checkout = () => {
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200"
+                  className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-250"
                 >
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">
                     UPI ID
                   </label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                    className="w-full px-4 py-3 bg-white border-2 border-slate-250 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
                     placeholder="yourname@paytm"
                   />
                 </motion.div>
@@ -486,7 +486,7 @@ const Checkout = () => {
                       : product.price;
 
                     return (
-                      <div key={item._id} className="flex gap-3 pb-4 border-b border-slate-200">
+                      <div key={item._id} className="flex gap-3 pb-4 border-b border-slate-250">
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                           <img
                             src={product.images?.[0] || 'https://via.placeholder.com/100'}
@@ -516,7 +516,7 @@ const Checkout = () => {
                 </div>
 
                 {/* Price Breakdown */}
-                <div className="space-y-4 py-6 border-y-2 border-slate-200">
+                <div className="space-y-4 py-6 border-y-2 border-slate-250">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600 uppercase font-bold">Subtotal</span>
                     <span className="font-black text-[#00171f]">₹{subtotal}</span>

@@ -23,12 +23,11 @@ const Wishlist = () => {
     }
   };
 
-  const handleAddToCart = (item) => {
-    // ✅ Extract product from nested structure
+ const handleAddToCart = (item) => {
     const product = item.product || item;
-    addToCart(product);
-    toast.success('Added to cart');
-  };
+    const productId = product._id || product.id;
+    addToCart(productId, 1); // ✅ passing just the ID
+};
 
   if (loading) {
     return (
@@ -113,12 +112,9 @@ const Wishlist = () => {
                   <Link to={`/products/${productId}`}>
                     <div className="h-64 bg-slate-100">
                       <img
-                        src={product.images?.[0] || 'https://via.placeholder.com/300'}
+                        src={product.images?.[0]}
                         alt={product.name || 'Product'}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/300?text=No+Image';
-                        }}
                       />
                     </div>
                   </Link>
