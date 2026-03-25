@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '../components/products/ProductCard';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
@@ -12,6 +12,11 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  
+  // ✅ Pagination state
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [totalProducts, setTotalProducts] = useState(0);
   
   // Filters state
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
@@ -26,10 +31,10 @@ const Products = () => {
     fetchCategories();
   }, []);
 
-  // Fetch products when filters change
+  // Fetch products when filters or page changes
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, minPrice, maxPrice, onSale, sortBy, searchQuery]);
+  }, [selectedCategory, minPrice, maxPrice, onSale, sortBy, searchQuery, currentPage]);
 
   const fetchCategories = async () => {
     try {
@@ -44,7 +49,10 @@ const Products = () => {
     try {
       setLoading(true);
       
-      const params = {};
+      const params = {
+        page: currentPage,
+        limit: 12, // ✅ Products per page
+      };
       
       if (selectedCategory) params.category = selectedCategory;
       if (searchQuery) params.search = searchQuery;
@@ -54,7 +62,13 @@ const Products = () => {
       if (sortBy) params.sort = sortBy;
       
       const response = await productService.getProducts(params);
+      
       setProducts(response.data || []);
+      setTotalPages(response.totalPages || 1);
+      setTotalProducts(response.total || 0);
+      
+      // ✅ Scroll to top on page change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -66,6 +80,7 @@ const Products = () => {
 
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
+    setCurrentPage(1); // ✅ Reset to page 1
     
     const params = new URLSearchParams(searchParams);
     if (categoryId) {
@@ -73,18 +88,29 @@ const Products = () => {
     } else {
       params.delete('category');
     }
+    params.set('page', '1');
     setSearchParams(params);
   };
 
   const handlePriceRange = (min, max) => {
     setMinPrice(min);
     setMaxPrice(max);
+    setCurrentPage(1); // ✅ Reset to page 1
     
     const params = new URLSearchParams(searchParams);
     if (min) params.set('minPrice', min);
     else params.delete('minPrice');
     if (max) params.set('maxPrice', max);
     else params.delete('maxPrice');
+    params.set('page', '1');
+    setSearchParams(params);
+  };
+
+  // ✅ Page change handler
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    const params = new URLSearchParams(searchParams);
+    params.set('page', newPage.toString());
     setSearchParams(params);
   };
 
@@ -95,6 +121,7 @@ const Products = () => {
     setOnSale(false);
     setSortBy('');
     setSearchQuery('');
+    setCurrentPage(1);
     setSearchParams({});
   };
 
@@ -114,6 +141,88 @@ const Products = () => {
     }
     if (onSale) return 'SALE ITEMS';
     return 'ALL PRODUCTS';
+  };
+
+  // ✅ Pagination component
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-12">
+        {/* Previous Button */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="p-2 rounded-lg border-2 border-slate-300 hover:border-[#00a8e8] disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* First Page */}
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => handlePageChange(1)}
+              className="px-4 py-2 rounded-lg border-2 border-slate-300 font-bold hover:border-[#00a8e8] transition"
+            >
+              1
+            </button>
+            {startPage > 2 && <span className="px-2 text-slate-400">...</span>}
+          </>
+        )}
+
+        {/* Page Numbers */}
+        {pages.map((page) => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={`px-4 py-2 rounded-lg border-2 font-bold transition ${
+              currentPage === page
+                ? 'bg-[#00a8e8] text-white border-[#00a8e8]'
+                : 'border-slate-300 hover:border-[#00a8e8]'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+
+        {/* Last Page */}
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2 text-slate-400">...</span>}
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              className="px-4 py-2 rounded-lg border-2 border-slate-300 font-bold hover:border-[#00a8e8] transition"
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* Next Button */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="p-2 rounded-lg border-2 border-slate-300 hover:border-[#00a8e8] disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+    );
   };
 
   // Loading skeleton
@@ -145,7 +254,13 @@ const Products = () => {
             {getPageTitle()}
           </h1>
           <p className="text-[#00a8e8] font-bold italic">
-            {products.length} {products.length === 1 ? 'ITEM' : 'ITEMS'} FOUND
+            {/* ✅ Show total products and current range */}
+            {totalProducts} {totalProducts === 1 ? 'ITEM' : 'ITEMS'} FOUND
+            {totalPages > 1 && (
+              <span className="text-slate-600 ml-2">
+                (Page {currentPage} of {totalPages})
+              </span>
+            )}
           </p>
         </div>
 
@@ -265,7 +380,7 @@ const Products = () => {
             </div>
 
             {/* Desktop Sort */}
-            <div className="hidden lg:flex justify-end mb-6">
+            <div className="hidden lg:flex justify-end mb-6 -mt-[65px]">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -293,14 +408,19 @@ const Products = () => {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product, index) => (
-                  <ProductCard 
-                    key={product._id || product.id || `product-${index}`}
-                    product={product} 
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {products.map((product, index) => (
+                    <ProductCard 
+                      key={product._id || product.id || `product-${index}`}
+                      product={product} 
+                    />
+                  ))}
+                </div>
+
+                {/* ✅ Pagination */}
+                <Pagination />
+              </>
             )}
           </main>
         </div>
@@ -345,7 +465,7 @@ const Products = () => {
                     </button>
                     {categories.map((category) => (
                       <button
-                        key={ category.id || category._id || category.slug}
+                        key={category.id || category._id || category.slug}
                         onClick={() => {
                           handleCategoryChange(category.id);
                           setShowMobileFilters(false);
