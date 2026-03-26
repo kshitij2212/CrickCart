@@ -125,11 +125,11 @@ const ProductCard = ({ product }) => {
         {/* Price */}
         <div className="px-6 pt-2">
           <div>
-            <span className="text-2xl md:text-3xl font-black italic text-[#00171f] dark:text-white">
+            <span className="text-2xl md:text-3xl font-black italic text-[#00a8e8] dark:text-white">
               ₹{Math.round(product.finalPrice || product.price)}
             </span>
             {product.discount && product.discount > 0 && (
-              <span className="text-sm text-slate-400 line-through ml-2">
+              <span className="text-sm text-slate-400 line-through ml-2 ">
                 ₹{product.price}
               </span>
             )}

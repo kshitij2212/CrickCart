@@ -1,27 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import categoryService from "../../services/categoryService";
 
 const TICKER_ITEMS = [
   "FREE SHIPPING ON ORDERS OVER ₹999",
   "NEW SEASON BATS JUST DROPPED",
   "OFFICIAL SHREY HELMETS",
-  "SALE — MINIMUM 40% OFF",
+  "SALE — Upto 90% OFF",
   "SAME DAY DISPATCH BEFORE 2PM",
-];
-
-const NAV_LINKS = [
-  { label: "HOME", to: "/" },
-  { label: "BATS", to: "/products?category=bats" },
-  { label: "BALL", to: "/products?category=balls" },
-  { label: "OTHERS", to: "/products?category=others" },
-  { label: "SALE", to: "/products?sale=true" },
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState([]); // ✅ Dynamic categories
   const { isAuthenticated } = useAuth();
+
+  // ✅ Fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryService.getCategories();
+      setCategories(data.data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   return (
     <div>
@@ -126,22 +134,23 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Navigation Links */}
+        {/* Navigation Links - ✅ DYNAMIC */}
         <nav className="hidden md:block bg-[#00a8e8]/10 border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 flex justify-center space-x-8 py-3">
-            {NAV_LINKS.map((link, index) => (
+            <Link
+              to="/"
+              className="text-xs font-black italic text-slate-400 hover:text-white transition-colors"
+            >
+              HOME
+            </Link>
+            
+            {categories.map((category) => (
               <Link
-                key={`nav-${index}`}
-                to={link.to}
-                className={`text-xs font-black italic transition-colors ${
-                  link.label === "SALE"
-                    ? "text-red-500 hover:text-red-300"
-                    : link.to === "/"
-                    ? "text-slate-400 hover:text-white"
-                    : "text-slate-400 hover:text-[#00a8e8]"
-                }`}
+                key={category._id || category.id}
+                to={`/products?category=${category._id || category.id}`}
+                className="text-xs font-black italic text-slate-400 hover:text-[#00a8e8] transition-colors uppercase"
               >
-                {link.label}
+                {category.name}
               </Link>
             ))}
           </div>
@@ -161,20 +170,25 @@ export default function Navbar() {
             </div>
             
             <nav className="px-4 py-4 space-y-3">
-              {NAV_LINKS.map((link, index) => (
+              <Link
+                to="/"
+                onClick={() => setMenuOpen(false)}
+                className="block text-sm font-black italic text-slate-400 hover:text-white transition py-2"
+              >
+                HOME
+              </Link>
+
+              {categories.map((category) => (
                 <Link
-                  key={`mobile-nav-${index}`}
-                  to={link.to}
+                  key={category._id || category.id}
+                  to={`/products?category=${category._id || category.id}`}
                   onClick={() => setMenuOpen(false)}
-                  className={`block text-sm font-black italic transition py-2 ${
-                    link.label === "SALE"
-                      ? "text-red-500 hover:text-red-300"
-                      : "text-slate-400 hover:text-white"
-                  }`}
+                  className="block text-sm font-black italic text-slate-400 hover:text-[#00a8e8] transition py-2 uppercase"
                 >
-                  {link.label}
+                  {category.name}
                 </Link>
               ))}
+
             </nav>
           </div>
         )}

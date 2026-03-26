@@ -22,19 +22,23 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
-  const [onSale, setOnSale] = useState(searchParams.get('sale') === 'true');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || '');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
 
-  // Fetch categories on mount
   useEffect(() => {
-    fetchCategories();
-  }, []);
+  const urlCategory = searchParams.get('category') || '';
+  const urlSearch = searchParams.get('search') || '';
+  const urlPage = parseInt(searchParams.get('page')) || 1;
+  
+  setSelectedCategory(urlCategory);
+  setSearchQuery(urlSearch);
+  setCurrentPage(urlPage);
+}, [searchParams]);
 
-  // Fetch products when filters or page changes
-  useEffect(() => {
-    fetchProducts();
-  }, [selectedCategory, minPrice, maxPrice, onSale, sortBy, searchQuery, currentPage]);
+// Fetch products when filters or page changes
+useEffect(() => {
+  fetchProducts();
+}, [selectedCategory, minPrice, maxPrice, sortBy, searchQuery, currentPage]);
 
   const fetchCategories = async () => {
     try {
@@ -58,7 +62,6 @@ const Products = () => {
       if (searchQuery) params.search = searchQuery;
       if (minPrice) params.minPrice = Number(minPrice);
       if (maxPrice) params.maxPrice = Number(maxPrice);
-      if (onSale) params.sale = true;
       if (sortBy) params.sort = sortBy;
       
       const response = await productService.getProducts(params);
@@ -118,7 +121,6 @@ const Products = () => {
     setSelectedCategory('');
     setMinPrice('');
     setMaxPrice('');
-    setOnSale(false);
     setSortBy('');
     setSearchQuery('');
     setCurrentPage(1);
@@ -129,7 +131,6 @@ const Products = () => {
     selectedCategory,
     minPrice,
     maxPrice,
-    onSale,
     searchQuery,
   ].filter(Boolean).length;
 
@@ -139,7 +140,6 @@ const Products = () => {
       const cat = categories.find((c) => c._id === selectedCategory);
       return cat?.name.toUpperCase() || 'PRODUCTS';
     }
-    if (onSale) return 'SALE ITEMS';
     return 'ALL PRODUCTS';
   };
 
@@ -324,19 +324,6 @@ const Products = () => {
               </div>
             </div>
 
-            {/* Sale Filter */}
-            <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100">
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={onSale}
-                  onChange={(e) => setOnSale(e.target.checked)}
-                  className="w-5 h-5 text-[#00a8e8] rounded focus:ring-[#00a8e8]"
-                />
-                <span className="font-black italic text-[#ef4444]">SALE ONLY</span>
-              </label>
-            </div>
-
             {/* Clear Filters */}
             {activeFiltersCount > 0 && (
               <button
@@ -504,19 +491,6 @@ const Products = () => {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* Sale Filter */}
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={onSale}
-                      onChange={(e) => setOnSale(e.target.checked)}
-                      className="w-5 h-5 text-[#00a8e8] rounded"
-                    />
-                    <span className="font-black italic text-[#ef4444]">SALE ONLY</span>
-                  </label>
                 </div>
 
                 {/* Clear Filters */}
