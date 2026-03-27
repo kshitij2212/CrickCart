@@ -4,6 +4,7 @@ import productService from '../../services/productService';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import AddProductModal from './AddProductModal';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -19,15 +20,17 @@ const ProductManagement = () => {
     productId: null,
     productName: '',
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
-    try {
-      const data = await productService.getProducts();
-      setProducts(data.data || []);
+  try {
+    const data = await productService.getProducts({ limit: 1000 });
+    setProducts(data.data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to fetch products');
@@ -71,6 +74,12 @@ const ProductManagement = () => {
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -97,7 +106,7 @@ const ProductManagement = () => {
             type="text"
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#00a8e8] focus:outline-none"
           />
         </div>
@@ -131,7 +140,7 @@ const ProductManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product) => (
+                paginatedProducts.map((product) => (
                   <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <img
@@ -176,6 +185,42 @@ const ProductManagement = () => {
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <p className="text-sm text-gray-500">
+            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} products
+        </p>
+        <div className="flex items-center gap-2">
+            <button
+                onClick={() => setCurrentPage(p => p - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border-2 border-slate-200 hover:border-[#00a8e8] disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+                <ChevronLeft className="w-4 h-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1.5 rounded-lg border-2 font-bold text-sm transition ${
+                        currentPage === page
+                            ? 'bg-[#00a8e8] text-white border-[#00a8e8]'
+                            : 'border-slate-200 hover:border-[#00a8e8]'
+                    }`}
+                >
+                    {page}
+                </button>
+            ))}
+            <button
+                onClick={() => setCurrentPage(p => p + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border-2 border-slate-200 hover:border-[#00a8e8] disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+                <ChevronRight className="w-4 h-4" />
+            </button>
+        </div>
+    </div>
+    )}
       </div>
 
       {/* ✅ CHANGE 6: Modal now receives editingProduct as `product` prop */}
