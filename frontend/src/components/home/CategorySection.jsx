@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 
 const CategorySection = () => {
   const [categories, setCategories] = useState([]);
@@ -11,10 +11,7 @@ const CategorySection = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const apiUrl = `${import.meta.env.VITE_API_URL}/categories`;
-        
-        const { data } = await axios.get(apiUrl);
-        
+        const { data } = await api.get('/categories');
         setCategories(data.data || data.categories || data);
       } catch (error) {
         console.error('Error fetching categories:', error);
