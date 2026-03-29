@@ -5,13 +5,13 @@ const Footer = () => {
   const footerLinks = {
     shop: [
       { label: "ALL PRODUCTS", to: "/products" },
-      { label: "BATS", to: "/products/bats" },
-      { label: "BALLS", to: "/products/balls" },
+      { label: "BATS", to: "/products?category=69b9d5a585747beec32572ce" },
+      { label: "BALLS", to: "/products?category=69b9d67185747beec32572d9" },
     ],
     support: [
       { label: "SHIPPING", to: "/shipping" },
       { label: "RETURNS", to: "/returns" },
-      { label: "ORDER TRACKING", to: "/track-order" },
+      { label: "ORDER TRACKING", to: "/orders" },
     ],
     legacy: [
       { label: "PRIVACY POLICY", to: "/privacy" },
