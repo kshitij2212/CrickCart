@@ -1,21 +1,21 @@
 import api from './api';
 
-export const orderService = {
-  // Create new order
-  createOrder: async (orderData) => {
-    const { data } = await api.post('/orders', orderData);
-    return data;
-  },
-
+const orderService = {
   // Get user orders
   getMyOrders: async (params = {}) => {
     const { data } = await api.get('/orders/myorders', { params });
     return data;
   },
 
-  // Get order by ID
+  // Get single order
   getOrderById: async (id) => {
     const { data } = await api.get(`/orders/${id}`);
+    return data;
+  },
+
+  // Create order
+  createOrder: async (orderData) => {
+    const { data } = await api.post('/orders', orderData);
     return data;
   },
 

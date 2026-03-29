@@ -65,10 +65,24 @@ useEffect(() => {
       if (sortBy) params.sort = sortBy;
       
       const response = await productService.getProducts(params);
-      
-      setProducts(response.data || []);
-      setTotalPages(response.totalPages || 1);
-      setTotalProducts(response.total || 0);
+
+      let filteredProducts = response.data || [];
+
+      // Filter by finalPrice on frontend
+      if (minPrice || maxPrice) {
+        filteredProducts = filteredProducts.filter(product => {
+        const finalPrice = product.finalPrice || 
+            (product.discount ? product.price - (product.price * product.discount / 100) : product.price);
+        
+        if (minPrice && finalPrice < Number(minPrice)) return false;
+        if (maxPrice && finalPrice > Number(maxPrice)) return false;
+        return true;
+      });
+    }
+
+      setProducts(filteredProducts);
+      setTotalPages(1); // Frontend filter ke baad pagination reset
+      setTotalProducts(filteredProducts.length);
       
       // ✅ Scroll to top on page change
       window.scrollTo({ top: 0, behavior: 'smooth' });
