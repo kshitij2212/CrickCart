@@ -48,7 +48,7 @@ const Checkout = () => {
   const subtotal = cartItems.reduce((sum, item) => {
     const product = item.product || {};
     const price = product.finalPrice || product.price || 0;
-    return sum + price * item.quantity;
+  return Math.round(sum + price * item.quantity);
   }, 0);
 
   const shippingCost = shippingOptions.find(opt => opt.id === shippingMethod)?.cost || 0;
@@ -419,7 +419,7 @@ const handlePaymentConfirm = async () => {
                               QTY: {item.quantity}
                             </span>
                             <span className="font-black text-[#00a8e8] text-lg">
-                              ₹{finalPrice * item.quantity}
+                              ₹{Math.round(finalPrice * item.quantity)}
                             </span>
                           </div>
                         </div>

@@ -111,7 +111,7 @@ const OrderDetails = () => {
                             Qty: {item.quantity}
                           </span>
                           <span className="font-black text-xl text-[#00a8e8]">
-                            ₹{item.price * item.quantity}
+                            ₹{Math.round(item.price * item.quantity)}
                           </span>
                         </div>
                       </div>

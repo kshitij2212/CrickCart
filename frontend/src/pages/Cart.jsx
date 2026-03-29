@@ -201,7 +201,7 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-bold">₹100</span>
+                  <span className="font-bold">TBD</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax (18%)</span>

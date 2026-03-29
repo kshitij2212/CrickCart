@@ -4,7 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import categoryService from "../../services/categoryService";
 
 const TICKER_ITEMS = [
-  "FREE SHIPPING ON ORDERS OVER ₹999",
+  "FREE SHIPPING ON STANDARD DELIVERY",
   "NEW SEASON BATS JUST DROPPED",
   "OFFICIAL SHREY HELMETS",
   "SALE — Upto 90% OFF",

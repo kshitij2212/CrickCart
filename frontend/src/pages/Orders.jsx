@@ -127,30 +127,6 @@ const Orders = () => {
           </p>
         </motion.div>
 
-        {/* Filters */}
-        <div className="flex gap-2 mb-8 overflow-x-auto no-scrollbar">
-          {[
-            { label: 'All Orders', value: 'all' },
-            { label: 'Pending', value: 'pending' },
-            { label: 'Processing', value: 'processing' },
-            { label: 'Shipped', value: 'shipped' },
-            { label: 'Delivered', value: 'delivered' },
-            { label: 'Cancelled', value: 'cancelled' },
-          ].map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setFilter(tab.value)}
-              className={`px-6 py-3 rounded-lg font-black italic text-sm uppercase whitespace-nowrap transition-all ${
-                filter === tab.value
-                  ? 'bg-[#00a8e8] text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border-2 border-slate-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         {/* Orders List */}
         <div className="space-y-6">
           {filteredOrders.length === 0 ? (
@@ -227,7 +203,7 @@ const Orders = () => {
                       <div>
                         <p className="text-xs text-slate-500 font-bold uppercase">Total Amount</p>
                         <p className="font-black text-2xl text-[#00a8e8]">
-                          ₹{order.pricing?.totalPrice}
+                          ₹{Math.round(order.pricing?.totalPrice)}
                         </p>
                       </div>
                     </div>
@@ -240,7 +216,7 @@ const Orders = () => {
                     {order.orderItems?.length || 0} {order.orderItems?.length === 1 ? 'ITEM' : 'ITEMS'}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {order.orderItems?.slice(0, 5).map((item) => (
+                    {order.orderItems?.slice(0, 4).map((item) => (
                       <div key={item._id} className="relative group">
                         <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border-2 border-slate-200 group-hover:border-[#00a8e8] transition">
                           <img
@@ -260,7 +236,7 @@ const Orders = () => {
                     {order.orderItems?.length > 5 && (
                       <div className="aspect-square rounded-lg bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
                         <p className="text-slate-500 font-black text-lg">
-                          +{order.orderItems.length - 5}
+                          +{order.orderItems.length - 4}
                         </p>
                       </div>
                     )}
