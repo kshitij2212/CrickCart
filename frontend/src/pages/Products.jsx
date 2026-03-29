@@ -37,6 +37,7 @@ const Products = () => {
 
 // Fetch products when filters or page changes
 useEffect(() => {
+  fetchCategories();
   fetchProducts();
 }, [selectedCategory, minPrice, maxPrice, sortBy, searchQuery, currentPage]);
 
@@ -66,23 +67,40 @@ useEffect(() => {
       
       const response = await productService.getProducts(params);
 
-      let filteredProducts = response.data || [];
+let filteredProducts = response.data || response.products || [];
 
-      // Filter by finalPrice on frontend
-      if (minPrice || maxPrice) {
-        filteredProducts = filteredProducts.filter(product => {
-        const finalPrice = product.finalPrice || 
-            (product.discount ? product.price - (product.price * product.discount / 100) : product.price);
-        
-        if (minPrice && finalPrice < Number(minPrice)) return false;
-        if (maxPrice && finalPrice > Number(maxPrice)) return false;
-        return true;
-      });
-    }
+if (minPrice || maxPrice) {
+  filteredProducts = filteredProducts.filter(product => {
+    const finalPrice =
+      product.finalPrice ||
+      (product.discount
+        ? product.price - (product.price * product.discount / 100)
+        : product.price);
 
-      setProducts(filteredProducts);
-      setTotalPages(1); // Frontend filter ke baad pagination reset
-      setTotalProducts(filteredProducts.length);
+    if (minPrice && finalPrice < Number(minPrice)) return false;
+    if (maxPrice && finalPrice > Number(maxPrice)) return false;
+    return true;
+  });
+}
+
+setProducts(filteredProducts);
+
+const pages =
+  response.pagination?.pages ||
+  response.pagination?.totalPages ||
+  response.totalPages ||
+  response.pages ||
+  1;
+
+const total =
+  response.pagination?.total ||
+  response.pagination?.totalProducts ||
+  response.totalProducts ||
+  response.total ||
+  filteredProducts.length;
+
+setTotalPages(pages);
+setTotalProducts(total);
       
       // ✅ Scroll to top on page change
       window.scrollTo({ top: 0, behavior: 'smooth' });
