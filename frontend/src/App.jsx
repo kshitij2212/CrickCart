@@ -1,5 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-
 import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import ProtectedRoute from "./components/common/ProtectedRoute";
@@ -16,6 +15,8 @@ import OrderDetails from "./pages/OrderDetails";
 import Wishlist from "./pages/Wishlist";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/admin/Dashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import TermsOfPlay from "./pages/TermsOfPlay.jsx";
 
 export default function App() {
   return (
@@ -38,6 +39,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/contact" element={<ContactUs />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfPlay />} />
 
           {/* ===== PROTECTED USER ROUTES ===== */}
           <Route

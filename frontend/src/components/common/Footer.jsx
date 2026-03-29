@@ -9,8 +9,8 @@ const Footer = () => {
       { label: "BALLS", to: "/products?category=69b9d67185747beec32572d9" },
     ],
     support: [
-      { label: "SHIPPING", to: "/shipping" },
-      { label: "RETURNS", to: "/returns" },
+      { label: "CART", to: "/cart" },
+      { label: "FAVOURITES", to: "/wishlist" },
       { label: "ORDER TRACKING", to: "/orders" },
     ],
     legacy: [
