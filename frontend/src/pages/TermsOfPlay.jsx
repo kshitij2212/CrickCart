@@ -264,27 +264,29 @@ const TermsOfPlay = () => {
           </motion.div>
         </div>
 
-        {/* Section count strip */}
-        <div className="border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-6 overflow-x-auto no-scrollbar">
-            {sections.map((s) => {
-              const Icon = s.icon;
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => scrollTo(s.id)}
-                  className={`flex items-center gap-2 text-xs font-black whitespace-nowrap transition-all py-1 border-b-2 ${
-                    activeSection === s.id
-                      ? 'text-[#00a8e8] border-[#00a8e8]'
-                      : 'text-slate-500 border-transparent hover:text-slate-300'
-                  }`}
-                >
-                  <Icon className="w-3 h-3" />
-                  {s.number}
-                </button>
-              );
-            })}
-          </div>
+      </div>
+
+      {/* Section strip — outside hero so overflow-hidden doesn't block clicks */}
+      <div className="bg-[#00171f] border-t border-white/10 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center gap-1 overflow-x-auto no-scrollbar">
+          {sections.map((s) => {
+            const Icon = s.icon;
+            const isActive = activeSection === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => scrollTo(s.id)}
+                className={`flex items-center gap-2 text-xs font-black whitespace-nowrap transition-all px-3 py-4 border-b-2 cursor-pointer ${
+                  isActive
+                    ? 'text-[#00a8e8] border-[#00a8e8]'
+                    : 'text-slate-400 border-transparent hover:text-white hover:border-white/30'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{s.number}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
