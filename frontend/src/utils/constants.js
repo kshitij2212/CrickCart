@@ -27,4 +27,4 @@ export const USER_ROLES = {
   ADMIN: 'admin',
 };
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://crickcart-backend.onrender.com/api/v1';
