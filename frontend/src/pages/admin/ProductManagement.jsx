@@ -11,8 +11,6 @@ const ProductManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  // ✅ CHANGE 1: Added editingProduct state
   const [editingProduct, setEditingProduct] = useState(null);
 
   const [confirmDialog, setConfirmDialog] = useState({
@@ -39,7 +37,6 @@ const ProductManagement = () => {
     }
   };
 
-  // ✅ CHANGE 2: handleEditClick — sets editingProduct and opens modal
   const handleEditClick = (product) => {
     setEditingProduct(product);
     setIsAddModalOpen(true);
@@ -64,7 +61,6 @@ const ProductManagement = () => {
     }
   };
 
-  // ✅ CHANGE 3: handleModalClose — resets editingProduct on close
   const handleModalClose = () => {
     setIsAddModalOpen(false);
     setEditingProduct(null);
@@ -88,7 +84,7 @@ const ProductManagement = () => {
         </h1>
         <button
           onClick={() => {
-            setEditingProduct(null); // ✅ CHANGE 4: Reset editing when Add button clicked
+            setEditingProduct(null);
             setIsAddModalOpen(true);
           }}
           className="flex items-center gap-2 bg-[#00a8e8] text-white px-6 py-3 font-bold rounded hover:bg-[#0095d1] transition"
@@ -98,7 +94,6 @@ const ProductManagement = () => {
         </button>
       </div>
 
-      {/* Search */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -112,7 +107,6 @@ const ProductManagement = () => {
         </div>
       </div>
 
-      {/* Products Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -164,7 +158,6 @@ const ProductManagement = () => {
                     <td className="py-4 px-6">{product.category?.name || 'N/A'}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
-                        {/* ✅ CHANGE 5: Edit button now calls handleEditClick */}
                         <button
                           onClick={() => handleEditClick(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
@@ -223,7 +216,6 @@ const ProductManagement = () => {
     )}
       </div>
 
-      {/* ✅ CHANGE 6: Modal now receives editingProduct as `product` prop */}
       <AddProductModal
         isOpen={isAddModalOpen}
         onClose={handleModalClose}

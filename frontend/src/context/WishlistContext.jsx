@@ -35,7 +35,6 @@ export const WishlistProvider = ({ children }) => {
 
     const removeFromWishlist = async (productId) => {
         try {
-            // Optimistic update — remove instantly from UI
             setWishlist(prev => prev.filter(item =>
                 (item.product?._id || item.product?.id || item.product) !== productId
             ));
@@ -45,7 +44,7 @@ export const WishlistProvider = ({ children }) => {
         } catch (error) {
             console.error('Remove error:', error);
             toast.error('Error removing from wishlist');
-            await fetchWishlist(false); // revert on error
+            await fetchWishlist(false);
             throw error;
         }
     };

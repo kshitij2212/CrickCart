@@ -39,16 +39,16 @@ const BrandManagement = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   
-  console.log('📤 Submitting brand:', formData);  // ✅ Add this
+  console.log('Submitting brand:', formData);
   
   try {
     if (editingBrand) {
       await brandService.updateBrand(editingBrand._id, formData);
       toast.success('Brand updated successfully!');
     } else {
-      console.log('Creating new brand...');  // ✅ Add this
+      console.log('Creating new brand...');
       const response = await brandService.createBrand(formData);
-      console.log('✅ Brand created:', response);  // ✅ Add this
+      console.log('✅ Brand created:', response);
       toast.success('Brand created successfully!');
     }
     setShowModal(false);
@@ -56,8 +56,8 @@ const handleSubmit = async (e) => {
     setEditingBrand(null);
     fetchBrands();
   } catch (error) {
-    console.error('❌ Brand error:', error);  // ✅ Add this
-    console.error('❌ Error response:', error.response?.data);  // ✅ Add this
+    console.error('Brand error:', error);
+    console.error('Error response:', error.response?.data);
     toast.error(error.response?.data?.message || 'Failed to save brand');
   }
 };
@@ -92,7 +92,6 @@ const handleSubmit = async (e) => {
     }
   };
 
-  // Auto-generate slug from name
   const handleNameChange = (e) => {
     const name = e.target.value;
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -118,7 +117,6 @@ const handleSubmit = async (e) => {
         </button>
       </div>
 
-      {/* Brands Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {loading ? (
           <div className="col-span-full flex justify-center py-8">
@@ -168,7 +166,6 @@ const handleSubmit = async (e) => {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
@@ -248,7 +245,6 @@ const handleSubmit = async (e) => {
         </div>
       )}
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         onClose={() => setConfirmDialog({ isOpen: false, brandId: null, brandName: '' })}

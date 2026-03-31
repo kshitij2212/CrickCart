@@ -100,7 +100,6 @@ const Cart = () => {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
           <div className="lg:col-span-2">
             <div className="space-y-4">
               {cart.items.map((item) => {
@@ -143,7 +142,6 @@ const Cart = () => {
                           )}
                         </div>
 
-                        {/* Quantity Controls */}
                         <div className="flex items-center gap-4 mt-4">
                           <div className="flex items-center border-2 border-gray-300 rounded">
                             <button
@@ -187,7 +185,6 @@ const Cart = () => {
             </div>
           </div>
 
-          {/* Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
               <h2 className="text-2xl font-black italic font-athletic mb-6">

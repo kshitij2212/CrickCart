@@ -12,13 +12,9 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  
-  // ✅ Pagination state
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalProducts, setTotalProducts] = useState(0);
-  
-  // Filters state
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
@@ -35,7 +31,6 @@ const Products = () => {
   setCurrentPage(urlPage);
 }, [searchParams]);
 
-// Fetch products when filters or page changes
 useEffect(() => {
   fetchCategories();
   fetchProducts();
@@ -56,7 +51,7 @@ useEffect(() => {
       
       const params = {
         page: currentPage,
-        limit: 12, // ✅ Products per page
+        limit: 12,
       };
       
       if (selectedCategory) params.category = selectedCategory;
@@ -101,8 +96,7 @@ const total =
 
 setTotalPages(pages);
 setTotalProducts(total);
-      
-      // ✅ Scroll to top on page change
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
     } catch (error) {
@@ -115,7 +109,7 @@ setTotalProducts(total);
 
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
-    setCurrentPage(1); // ✅ Reset to page 1
+    setCurrentPage(1);
     
     const params = new URLSearchParams(searchParams);
     if (categoryId) {
@@ -130,7 +124,7 @@ setTotalProducts(total);
   const handlePriceRange = (min, max) => {
     setMinPrice(min);
     setMaxPrice(max);
-    setCurrentPage(1); // ✅ Reset to page 1
+    setCurrentPage(1);
     
     const params = new URLSearchParams(searchParams);
     if (min) params.set('minPrice', min);
@@ -141,7 +135,6 @@ setTotalProducts(total);
     setSearchParams(params);
   };
 
-  // ✅ Page change handler
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
     const params = new URLSearchParams(searchParams);
@@ -175,7 +168,6 @@ setTotalProducts(total);
     return 'ALL PRODUCTS';
   };
 
-  // ✅ Pagination component
   const Pagination = () => {
     if (totalPages <= 1) return null;
 
@@ -195,7 +187,6 @@ setTotalProducts(total);
 
     return (
       <div className="flex items-center justify-center gap-2 mt-12">
-        {/* Previous Button */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -204,7 +195,6 @@ setTotalProducts(total);
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        {/* First Page */}
         {startPage > 1 && (
           <>
             <button
@@ -217,7 +207,6 @@ setTotalProducts(total);
           </>
         )}
 
-        {/* Page Numbers */}
         {pages.map((page) => (
           <button
             key={page}
@@ -232,7 +221,6 @@ setTotalProducts(total);
           </button>
         ))}
 
-        {/* Last Page */}
         {endPage < totalPages && (
           <>
             {endPage < totalPages - 1 && <span className="px-2 text-slate-400">...</span>}
@@ -244,8 +232,6 @@ setTotalProducts(total);
             </button>
           </>
         )}
-
-        {/* Next Button */}
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -257,7 +243,6 @@ setTotalProducts(total);
     );
   };
 
-  // Loading skeleton
   if (loading) {
     return (
       <div className="diagonal-bg min-h-screen">
@@ -279,14 +264,11 @@ setTotalProducts(total);
   return (
     <div className="diagonal-bg min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-black italic font-athletic text-[#00171f] mb-2">
             {getPageTitle()}
           </h1>
           <p className="text-[#00a8e8] font-bold italic">
-            {/* ✅ Show total products and current range */}
             {totalProducts} {totalProducts === 1 ? 'ITEM' : 'ITEMS'} FOUND
             {totalPages > 1 && (
               <span className="text-slate-600 ml-2">
@@ -297,11 +279,7 @@ setTotalProducts(total);
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
-          {/* ========== DESKTOP FILTERS SIDEBAR ========== */}
           <aside className="hidden lg:block w-64 space-y-6">
-            
-            {/* Categories */}
             <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100">
               <h3 className="font-athletic font-black italic text-lg text-[#00171f] mb-4">
                 CATEGORIES
@@ -333,7 +311,6 @@ setTotalProducts(total);
               </div>
             </div>
 
-            {/* Price Range */}
             <div className="bg-white rounded-xl p-6 shadow-md border border-slate-100">
               <h3 className="font-athletic font-black italic text-lg text-[#00171f] mb-4">
                 PRICE RANGE
@@ -356,7 +333,6 @@ setTotalProducts(total);
               </div>
             </div>
 
-            {/* Clear Filters */}
             {activeFiltersCount > 0 && (
               <button
                 onClick={clearFilters}
@@ -367,10 +343,8 @@ setTotalProducts(total);
             )}
           </aside>
 
-          {/* ========== MAIN CONTENT ========== */}
           <main className="flex-1">
             
-            {/* Mobile Controls */}
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <button
                 onClick={() => setShowMobileFilters(true)}
@@ -398,7 +372,6 @@ setTotalProducts(total);
               </select>
             </div>
 
-            {/* Desktop Sort */}
             <div className="hidden lg:flex justify-end mb-6 -mt-[65px]">
               <select
                 value={sortBy}
@@ -413,7 +386,6 @@ setTotalProducts(total);
               </select>
             </div>
 
-            {/* Products Grid */}
             {products.length === 0 ? (
               <div className="bg-white rounded-xl p-12 text-center shadow-md border border-slate-100">
                 <p className="text-2xl font-bold text-gray-500 mb-4">NO PRODUCTS FOUND</p>
@@ -437,14 +409,12 @@ setTotalProducts(total);
                   ))}
                 </div>
 
-                {/* ✅ Pagination */}
                 <Pagination />
               </>
             )}
           </main>
         </div>
 
-        {/* ========== MOBILE FILTER MODAL ========== */}
         {showMobileFilters && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div 
@@ -453,8 +423,6 @@ setTotalProducts(total);
             />
             
             <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-2xl overflow-y-auto">
-              
-              {/* Header */}
               <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between z-10">
                 <h2 className="font-athletic font-black italic text-xl">FILTERS</h2>
                 <button onClick={() => setShowMobileFilters(false)}>
@@ -462,10 +430,7 @@ setTotalProducts(total);
                 </button>
               </div>
 
-              {/* Filters Content */}
               <div className="p-4 space-y-6">
-                
-                {/* Categories */}
                 <div>
                   <h3 className="font-athletic font-black italic text-lg mb-3">CATEGORIES</h3>
                   <div className="space-y-2">
@@ -501,7 +466,6 @@ setTotalProducts(total);
                   </div>
                 </div>
 
-                {/* Price Range */}
                 <div>
                   <h3 className="font-athletic font-black italic text-lg mb-3">PRICE RANGE</h3>
                   <div className="space-y-1">
@@ -525,7 +489,6 @@ setTotalProducts(total);
                   </div>
                 </div>
 
-                {/* Clear Filters */}
                 {activeFiltersCount > 0 && (
                   <button
                     onClick={() => {

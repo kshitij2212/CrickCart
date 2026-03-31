@@ -58,8 +58,6 @@ const OrderDetails = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Back Button */}
         <button
           onClick={() => navigate('/orders')}
           className="flex items-center gap-2 text-slate-600 hover:text-[#00a8e8] mb-8 font-bold transition"
@@ -68,7 +66,6 @@ const OrderDetails = () => {
           BACK TO ORDERS
         </button>
 
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-black italic text-[#00171f] mb-2">
             ORDER DETAILS
@@ -79,11 +76,8 @@ const OrderDetails = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* Left Column - Order Items */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* Items */}
             <div className="bg-white rounded-2xl p-8 shadow-lg border-2 border-slate-100">
               <h2 className="text-2xl font-black italic text-[#00171f] mb-6 flex items-center gap-2">
                 <Package className="w-6 h-6 text-[#00a8e8]" />
@@ -121,7 +115,6 @@ const OrderDetails = () => {
               </div>
             </div>
 
-            {/* Shipping Address */}
             <div className="bg-white rounded-2xl p-8 shadow-lg border-2 border-slate-100">
               <h2 className="text-2xl font-black italic text-[#00171f] mb-6 flex items-center gap-2">
                 <MapPin className="w-6 h-6 text-[#00a8e8]" />
@@ -151,11 +144,8 @@ const OrderDetails = () => {
             </div>
 
           </div>
-
-          {/* Right Column - Summary */}
           <div className="space-y-6">
 
-            {/* Order Summary */}
             <div className="bg-white rounded-2xl p-8 shadow-lg border-2 border-slate-100 sticky top-24">
               <h2 className="text-xl font-black italic text-[#00171f] mb-6">
                 ORDER SUMMARY

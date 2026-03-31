@@ -17,7 +17,7 @@ const Login = () => {
 
   try {
     const user = await login(formData.email, formData.password);
-    console.log('✅ Login returned user:', user); // ADD THIS
+    console.log('✅ Login returned user:', user);
     console.log('✅ Navigating to:', user.role === 'admin' ? '/admin' : '/');
     
     if (user.role === 'admin') {

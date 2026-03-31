@@ -3,12 +3,12 @@ import { X, Upload, Trash2, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 import productService from '../../services/productService';
-import brandService from '../../services/brandService';  // ✅ Add this import
+import brandService from '../../services/brandService';
 
 const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);  // ✅ Add brands state
+  const [brands, setBrands] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [hoveredStar, setHoveredStar] = useState(0);
@@ -29,7 +29,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
-      fetchBrands();  // ✅ Add this
+      fetchBrands();
       if (product) {
         setFormData({
           name: product.name || '',
@@ -57,7 +57,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
     }
   };
 
-  // ✅ Add fetchBrands function
   const fetchBrands = async () => {
     try {
       const data = await brandService.getBrands();
@@ -84,15 +83,15 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
       const isHeic = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
 
       if (isHeic) {
-        toast.error(`❌ ${file.name} — HEIC/HEIF not supported. Use JPG or PNG.`, { duration: 4000 });
+        toast.error(`${file.name} — HEIC/HEIF not supported. Use JPG or PNG.`, { duration: 4000 });
         return false;
       }
       if (!validTypes.includes(file.type)) {
-        toast.error(`❌ ${file.name} — format not supported.`, { duration: 4000 });
+        toast.error(`${file.name} — format not supported.`, { duration: 4000 });
         return false;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error(`❌ ${file.name} — too large. Max 5MB.`, { duration: 4000 });
+        toast.error(`${file.name} — too large. Max 5MB.`, { duration: 4000 });
         return false;
       }
       return true;
@@ -135,7 +134,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (Number(formData.price) <= 0) {
       toast.error('Price must be greater than 0');
       return;
@@ -144,7 +142,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
       toast.error('Stock must be greater than 0');
       return;
     }
-    // ✅ CHANGE 4: Skip image required check in edit mode if images already exist
     if (!product && imageFiles.length === 0) {
       toast.error('Please upload at least one image');
       return;
@@ -153,7 +150,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
     setLoading(true);
 
     try {
-      // Step 1: Upload new images if any selected
       let newImageUrls = [];
       if (imageFiles.length > 0) {
         const formDataImg = new FormData();
@@ -164,9 +160,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
         newImageUrls = uploadRes.images;
       }
 
-      // ✅ CHANGE 5: Edit mode vs Add mode
       if (product) {
-        // EDIT MODE — keep existing images + add new ones
         const existingImages = product.images || [];
         await productService.updateProduct(product.id, {
           name: formData.name,
@@ -183,7 +177,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
         });
         toast.success('Product updated successfully!');
       } else {
-        // ADD MODE — use uploaded image URLs
         await api.post('/products/create', {
           name: formData.name,
           description: formData.description,
@@ -216,8 +209,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
 
-        {/* Header */}
-        {/* ✅ CHANGE 6: Title changes based on add/edit mode */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
           <h2 className="text-2xl font-black italic text-[#00171f]">
             {product ? 'EDIT PRODUCT' : 'ADD NEW PRODUCT'}
@@ -243,7 +234,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">DESCRIPTION *</label>
             <textarea
@@ -257,7 +247,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             />
           </div>
 
-          {/* Price, Discount, Stock */}
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">PRICE (₹) *</label>
@@ -300,7 +289,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             </div>
           </div>
 
-          {/* Category & Brand */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">CATEGORY *</label>
@@ -334,7 +322,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             </div>
           </div>
 
-          {/* Rating */}
           <div>
             <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">
               RATING — {formData.rating}/5
@@ -383,7 +370,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             </div>
           </div>
 
-          {/* Featured */}
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -395,11 +381,8 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             />
             <label htmlFor="isFeatured" className="text-sm font-bold">MARK AS FEATURED</label>
           </div>
-
-          {/* Images */}
           <div>
             <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">
-              {/* ✅ CHANGE 7: Label changes in edit mode */}
               {product ? 'PRODUCT IMAGES (existing + new)' : 'PRODUCT IMAGES *'}
             </label>
 
@@ -443,7 +426,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
             </label>
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-4 pt-4 border-t">
             <button
               type="button"
@@ -457,7 +439,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
               disabled={loading}
               className="flex-1 px-6 py-3 bg-[#00a8e8] text-white font-bold rounded hover:bg-[#0095d1] transition disabled:opacity-50"
             >
-              {/* ✅ CHANGE 8: Button text changes based on mode */}
               {loading ? (product ? 'UPDATING...' : 'ADDING...') : (product ? 'UPDATE PRODUCT' : 'ADD PRODUCT')}
             </button>
           </div>

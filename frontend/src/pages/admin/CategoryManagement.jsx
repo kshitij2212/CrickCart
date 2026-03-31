@@ -107,7 +107,6 @@ const CategoryManagement = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      // ✅ Actual delete API call
       await categoryService.deleteCategory(confirmDialog.categoryId);
       toast.success(`"${confirmDialog.categoryName}" deleted successfully`);
       setConfirmDialog({ isOpen: false, categoryId: null, categoryName: "" });
@@ -127,8 +126,6 @@ const CategoryManagement = () => {
 
   return (
     <div>
-
-      {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-black italic text-[#00171f]">
           CATEGORY MANAGEMENT
@@ -145,7 +142,6 @@ const CategoryManagement = () => {
         </button>
       </div>
 
-      {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full flex justify-center py-10">
@@ -200,12 +196,9 @@ const CategoryManagement = () => {
         )}
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md relative">
-
-            {/* Close button */}
             <button
               onClick={handleCloseModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -218,8 +211,6 @@ const CategoryManagement = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-
-              {/* Name */}
               <div>
                 <label className="font-bold text-sm block mb-1">CATEGORY NAME</label>
                 <input
@@ -231,7 +222,6 @@ const CategoryManagement = () => {
                 />
               </div>
 
-              {/* Color */}
               <div>
                 <label className="font-bold text-sm block mb-1">COLOR</label>
                 <div className="flex items-center gap-3">
@@ -245,11 +235,9 @@ const CategoryManagement = () => {
                 </div>
               </div>
 
-              {/* Image Upload */}
               <div>
                 <label className="font-bold text-sm block mb-1">IMAGE</label>
 
-                {/* Preview */}
                 {imagePreview && (
                   <div className="mb-2 relative w-full h-32 rounded overflow-hidden">
                     <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
@@ -277,7 +265,6 @@ const CategoryManagement = () => {
                 </label>
               </div>
 
-              {/* Buttons */}
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"

@@ -7,7 +7,6 @@ export const formatPrice = (price) => {
   }).format(price);
 };
 
-// Format date
 export const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -16,18 +15,15 @@ export const formatDate = (date) => {
   });
 };
 
-// Calculate discount percentage
 export const calculateDiscount = (price, finalPrice) => {
   return Math.round(((price - finalPrice) / price) * 100);
 };
 
-// Truncate text
 export const truncateText = (text, maxLength) => {
   if (text.length <= maxLength) return text;
   return text.substr(0, maxLength) + '...';
 };
 
-// Generate slug from string
 export const generateSlug = (text) => {
   return text
     .toLowerCase()
@@ -35,17 +31,13 @@ export const generateSlug = (text) => {
     .replace(/(^-|-$)/g, '');
 };
 
-// Validate phone number
 export const isValidPhone = (phone) => {
   return /^[6-9]\d{9}$/.test(phone);
 };
 
-// Validate email
 export const isValidEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
-
-// Get order status color
 export const getOrderStatusColor = (status) => {
   const colors = {
     Pending: 'text-yellow-600 bg-yellow-100',

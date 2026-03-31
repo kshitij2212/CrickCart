@@ -149,8 +149,6 @@ const handlePaymentConfirm = async () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
             <button onClick={() => navigate('/')} className="hover:text-[#00a8e8] transition">Home</button>
@@ -168,10 +166,7 @@ const handlePaymentConfirm = async () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* Left Column */}
           <div className="lg:w-2/3 space-y-6">
-
-            {/* Shipping Address */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -241,7 +236,6 @@ const handlePaymentConfirm = async () => {
               </div>
             </motion.section>
 
-            {/* Shipping Method */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -288,8 +282,6 @@ const handlePaymentConfirm = async () => {
                 })}
               </div>
             </motion.section>
-
-            {/* Payment Method */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -387,7 +379,6 @@ const handlePaymentConfirm = async () => {
             </motion.section>
           </div>
 
-          {/* Right Column - Order Summary */}
           <div className="lg:w-1/3">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -482,7 +473,6 @@ const handlePaymentConfirm = async () => {
         </div>
       </div>
 
-      {/* Demo Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <motion.div

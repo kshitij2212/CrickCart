@@ -24,10 +24,8 @@ const Footer = () => {
     <footer className="bg-[#00171f] text-white pt-20 pb-10 border-t-4 border-[#00a8e8]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16">
 
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-8">
               <span className="material-symbols-outlined text-3xl text-[#00a8e8]">
@@ -43,7 +41,6 @@ const Footer = () => {
               FORGED IN TRADITION, BUILT FOR THE FUTURE.
             </p>
 
-            {/* Social Icons */}
             <div className="flex gap-4">
               <a
                 href="https://www.facebook.com/"
@@ -71,7 +68,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* SHOP ELITE */}
           <div>
             <h4 className="text-[#00a8e8] font-black italic text-xl mb-8">
               SHOP ELITE
@@ -90,7 +86,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* ATHLETE SUPPORT */}
           <div>
             <h4 className="text-[#00a8e8] font-black italic text-xl mb-8">
               ATHLETE SUPPORT
@@ -109,7 +104,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* LEGACY */}
           <div>
             <h4 className="text-[#00a8e8] font-black italic text-xl mb-8">
               LEGACY
@@ -129,7 +123,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-slate-500 text-xs font-black italic tracking-widest uppercase">
             © 2026 CRICKCART. DOMINATE THE GAME.

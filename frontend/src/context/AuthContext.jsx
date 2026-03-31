@@ -19,14 +19,14 @@ useEffect(() => {
 
   if (token && savedUser) {
     const parsedUser = JSON.parse(savedUser);
-    console.log('✅ Setting user:', parsedUser);
+    console.log('Setting user:', parsedUser);
     setUser(parsedUser);
   } else {
-    console.log('❌ No token or user found');
+    console.log('No token or user found');
   }
   
   setLoading(false);
-  console.log('✅ Loading complete');
+  console.log('Loading complete');
 }, []);
 
   const login = async (email, password) => {
@@ -48,29 +48,29 @@ useEffect(() => {
 
   const register = async (userData) => {
     try {
-      console.log('📤 Sending register request:', userData);
+      console.log('Sending register request:', userData);
       
       const { data } = await api.post('/users/register', userData);
       
-      console.log('📥 Register response:', data);
-      console.log('📥 Token:', data.token);
-      console.log('📥 User:', data.user);
+      console.log('Register response:', data);
+      console.log('Token:', data.token);
+      console.log('User:', data.user);
       
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
-      console.log('💾 Saved to localStorage');
-      console.log('💾 Token:', localStorage.getItem('token'));
-      console.log('💾 User:', localStorage.getItem('user'));
+      console.log('Saved to localStorage');
+      console.log('Token:', localStorage.getItem('token'));
+      console.log('User:', localStorage.getItem('user'));
       
       setUser(data.user);
-      console.log('✅ User state updated:', data.user);
+      console.log('User state updated:', data.user);
       
       toast.success('Registration successful!');
       return data.user;
     } catch (error) {
-      console.error('❌ Register error:', error);
-      console.error('❌ Response:', error.response?.data);
+      console.error('Register error:', error);
+      console.error('Response:', error.response?.data);
       toast.error(error.response?.data?.message || 'Registration failed');
       throw error;
     }
@@ -94,8 +94,7 @@ useEffect(() => {
     isAdmin: user?.role === 'admin',
   };
 
-  // AuthContext.jsx - value object ke baad, return se pehle
-console.log('🔐 AuthContext Current State:');
+console.log('AuthContext Current State:');
 console.log('  - user:', user);
 console.log('  - loading:', loading);
 console.log('  - isAuthenticated:', !!user);

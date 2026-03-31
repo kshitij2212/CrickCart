@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, pending, delivered, cancelled
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     fetchOrders();
@@ -112,8 +112,6 @@ const Orders = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -127,7 +125,6 @@ const Orders = () => {
           </p>
         </motion.div>
 
-        {/* Orders List */}
         <div className="space-y-6">
           {filteredOrders.length === 0 ? (
             <div className="bg-white rounded-xl p-12 text-center border-2 border-slate-100">
@@ -144,7 +141,6 @@ const Orders = () => {
                 transition={{ delay: index * 0.05 }}
                 className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 hover:border-[#00a8e8]/30 hover:shadow-xl transition-all overflow-hidden"
               >
-                {/* Order Header */}
                 <div className="bg-gradient-to-r from-slate-50 to-white p-6 border-b-2 border-slate-100">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -210,7 +206,6 @@ const Orders = () => {
                   </div>
                 </div>
 
-                {/* Order Items */}
                 <div className="p-6">
                   <p className="text-xs font-black uppercase text-slate-500 mb-4">
                     {order.orderItems?.length || 0} {order.orderItems?.length === 1 ? 'ITEM' : 'ITEMS'}

@@ -26,7 +26,7 @@ const Wishlist = () => {
  const handleAddToCart = (item) => {
     const product = item.product || item;
     const productId = product._id || product.id;
-    addToCart(productId, 1); // ✅ passing just the ID
+    addToCart(productId, 1);
 };
 
   if (loading) {
@@ -70,8 +70,6 @@ const Wishlist = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl md:text-5xl font-black italic text-[#00171f] mb-2">
@@ -82,11 +80,8 @@ const Wishlist = () => {
             </p>
           </div>
         </div>
-
-        {/* Wishlist Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {wishlist.map((item) => {
-            // ✅ Extract product - handle both structures
             const product = item.product || item;
             const productId = product._id || product.id;
 
@@ -99,7 +94,6 @@ const Wishlist = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-slate-100"
               >
-                {/* Delete Button */}
                 <div className="relative">
                   <button
                     onClick={() => handleRemove(productId)}
@@ -108,7 +102,6 @@ const Wishlist = () => {
                     <Trash2 className="w-4 h-4 text-gray-600 group-hover:text-red-600 transition" />
                   </button>
 
-                  {/* Image */}
                   <Link to={`/products/${productId}`}>
                     <div className="h-64 bg-slate-100">
                       <img
@@ -120,7 +113,6 @@ const Wishlist = () => {
                   </Link>
                 </div>
 
-                {/* Content */}
                 <div className="p-4">
                   <Link to={`/products/${productId}`}>
                     <h3 className="font-athletic font-black italic text-lg text-[#00171f] mb-2 uppercase line-clamp-2 hover:text-[#00a8e8] transition">
@@ -128,7 +120,6 @@ const Wishlist = () => {
                     </h3>
                   </Link>
 
-                  {/* Price */}
                   <div className="mb-4">
                     {product.discount && product.discount > 0 ? (
                       <div className="flex items-center gap-2">
@@ -149,7 +140,6 @@ const Wishlist = () => {
                     )}
                   </div>
 
-                  {/* Add to Cart Button */}
                   <button
                     onClick={() => handleAddToCart(item)}
                     className="w-full bg-[#00171f] text-white font-black italic py-3 rounded hover:bg-[#00a8e8] transition flex items-center justify-center gap-2"

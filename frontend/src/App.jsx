@@ -4,7 +4,6 @@ import Navbar from "./components/common/Navbar";
 import Footer from "./components/common/Footer";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
-// Lazy-loaded pages
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const Home = lazy(() => import("./pages/Home"));
 const Products = lazy(() => import("./pages/Products"));
@@ -32,17 +31,15 @@ function PageLoader() {
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar - Hide on admin pages */}
       <Routes>
         <Route path="/admin/*" element={null} />
         <Route path="*" element={<Navbar />} />
       </Routes>
 
-      {/* Main Content */}
       <main className="flex-grow">
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* ===== PUBLIC ROUTES ===== */}
+
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetails />} />
@@ -52,7 +49,6 @@ export default function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfPlay />} />
 
-            {/* ===== PROTECTED USER ROUTES ===== */}
             <Route
               path="/cart"
               element={
@@ -107,7 +103,6 @@ export default function App() {
               }
             />
 
-            {/* ===== ADMIN ROUTES ===== */}
             <Route
               path="/admin/*"
               element={
@@ -120,7 +115,6 @@ export default function App() {
         </Suspense>
       </main>
 
-      {/* Footer - Hide on admin pages */}
       <Routes>
         <Route path="/admin/*" element={null} />
         <Route path="*" element={<Footer />} />

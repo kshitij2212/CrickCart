@@ -205,8 +205,6 @@ const TermsOfPlay = () => {
       const scrollTop = window.scrollY;
       const scrollHeight = el.scrollHeight - el.clientHeight;
       setScrollProgress(scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0);
-
-      // Update active section based on scroll
       sections.forEach(({ id }) => {
         const el = document.getElementById(id);
         if (el) {
@@ -227,13 +225,9 @@ const TermsOfPlay = () => {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* Progress Bar */}
       <div className="fixed top-0 left-0 z-50 h-1 bg-[#00a8e8] transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
-
-      {/* Hero */}
       <div className="bg-[#00171f] relative overflow-hidden">
         <div className="absolute inset-0">
-          {/* Cricket pitch lines */}
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-full bg-white/5" />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-full border-x border-white/5" />
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-80 h-24 border border-white/5 rounded-t-full" />
@@ -263,10 +257,8 @@ const TermsOfPlay = () => {
             </div>
           </motion.div>
         </div>
-
       </div>
 
-      {/* Section strip — outside hero so overflow-hidden doesn't block clicks */}
       <div className="bg-[#00171f] border-t border-white/10 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-0 flex items-center gap-1 overflow-x-auto no-scrollbar">
           {sections.map((s) => {
@@ -290,11 +282,8 @@ const TermsOfPlay = () => {
         </div>
       </div>
 
-      {/* Body */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex gap-12">
-
-          {/* Sticky Sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24">
               <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Jump to Section</p>
@@ -323,7 +312,6 @@ const TermsOfPlay = () => {
                 })}
               </nav>
 
-              {/* Contact CTA */}
               <div className="mt-8 p-4 bg-[#00171f] rounded-xl">
                 <p className="text-xs font-black text-white mb-1">Got Questions?</p>
                 <p className="text-xs text-slate-400 mb-3">Our support team can help clarify any terms.</p>
@@ -337,10 +325,8 @@ const TermsOfPlay = () => {
             </div>
           </aside>
 
-          {/* Content */}
           <main ref={contentRef} className="flex-1 min-w-0">
 
-            {/* Intro banner */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -355,7 +341,6 @@ const TermsOfPlay = () => {
               </div>
             </motion.div>
 
-            {/* Sections */}
             <div className="space-y-16">
               {sections.map((section, sIdx) => {
                 const Icon = section.icon;
@@ -368,7 +353,6 @@ const TermsOfPlay = () => {
                     viewport={{ once: true, margin: '-100px' }}
                     transition={{ delay: 0.05 }}
                   >
-                    {/* Section Header */}
                     <div className="flex items-start gap-5 mb-8 pb-6 border-b-2 border-slate-100">
                       <div className="flex-shrink-0">
                         <div className="w-14 h-14 bg-[#00171f] rounded-2xl flex items-center justify-center">
@@ -383,7 +367,6 @@ const TermsOfPlay = () => {
                       </div>
                     </div>
 
-                    {/* Sub-sections */}
                     <div className="space-y-6">
                       {section.content.map((item, idx) => (
                         <div
@@ -404,7 +387,6 @@ const TermsOfPlay = () => {
               })}
             </div>
 
-            {/* Footer CTA */}
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}

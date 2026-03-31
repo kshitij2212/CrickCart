@@ -91,11 +91,7 @@ const ContactUs = () => {
 
   return (
     <div className="min-h-screen bg-white">
-
-      {/* Hero */}
       <div className="bg-[#00171f] relative overflow-hidden">
-
-        {/* Pitch lines background */}
         <div className="absolute inset-0 opacity-[0.04]">
           {[...Array(6)].map((_, i) => (
             <div
@@ -111,7 +107,6 @@ const ContactUs = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-16 relative z-10">
 
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-10">
             <Link to="/" className="hover:text-[#00a8e8] transition font-bold">Home</Link>
             <ChevronRight className="w-3 h-3" />
@@ -153,7 +148,6 @@ const ContactUs = () => {
           </div>
         </div>
 
-        {/* Channel strip */}
         <div className="border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-1 overflow-x-auto no-scrollbar">
             {contactChannels.map((ch) => {
@@ -173,7 +167,6 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Contact Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {contactChannels.map((item, i) => {
@@ -206,11 +199,9 @@ const ContactUs = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex flex-col lg:flex-row gap-12">
 
-          {/* LEFT — Form */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -218,7 +209,6 @@ const ContactUs = () => {
           >
             <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 overflow-hidden">
 
-              {/* Light header */}
               <div className="bg-slate-50 border-b-2 border-slate-100 p-8">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-[#00a8e8]/10 rounded-2xl flex items-center justify-center">
@@ -285,7 +275,6 @@ const ContactUs = () => {
                       />
                     </div>
 
-                    {/* Topic chips */}
                     <div>
                       <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-3">What's this about?</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -333,15 +322,12 @@ const ContactUs = () => {
               </div>
             </div>
           </motion.div>
-
-          {/* RIGHT */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="lg:w-2/5 space-y-6"
           >
 
-            {/* FAQ */}
             <div className="bg-white rounded-2xl shadow-lg border-2 border-slate-100 overflow-hidden">
               <div className="bg-slate-50 border-b-2 border-slate-100 px-8 py-6">
                 <p className="text-xs font-black text-[#00a8e8] tracking-widest mb-1 uppercase">Help Center</p>
@@ -371,7 +357,6 @@ const ContactUs = () => {
               </div>
             </div>
 
-            {/* Social */}
             <div className="bg-white rounded-2xl overflow-hidden shadow-lg border-2 border-slate-100">
               <div className="bg-slate-50 border-b-2 border-slate-100 px-8 py-6">
                 <p className="text-xs font-black text-[#00a8e8] tracking-widest mb-1 uppercase">Stay Connected</p>
@@ -402,8 +387,6 @@ const ContactUs = () => {
                 })}
               </div>
             </div>
-
-            {/* Order CTA */}
             <div className="bg-[#00a8e8]/5 border-2 border-[#00a8e8]/20 rounded-2xl p-6">
               <div className="flex items-start gap-3 mb-5">
                 <Package className="w-6 h-6 text-[#00a8e8] flex-shrink-0 mt-0.5" />

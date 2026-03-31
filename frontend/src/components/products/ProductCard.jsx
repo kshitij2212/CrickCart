@@ -18,7 +18,6 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
 
-  // Fix #2: safe id
   const productId = product.id;
 
   const handleAddToCart = async (e) => {
@@ -64,7 +63,6 @@ const ProductCard = ({ product }) => {
 
   const imageUrl = product.images?.[0] || 'https://placehold.co/400x400?text=No+Image';
 
-  // Fix #3: wishlisted check
   const wishlisted = isWishlisted(productId);
 
   return (
@@ -75,10 +73,7 @@ const ProductCard = ({ product }) => {
       transition={{ duration: 0.3 }}
       className="relative"
     >
-      {/* Fix #1: Link only wraps image + title, not buttons */}
       <div className="bg-white dark:bg-slate-900 card-hover transition-all duration-300 border border-slate-100 dark:border-slate-800 relative group">
-
-        {/* Badges */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {product.isFeatured && (
             <span className="metallic-badge text-[10px] font-black px-2 py-0.5 text-[#00171f] italic uppercase">
@@ -92,7 +87,6 @@ const ProductCard = ({ product }) => {
           )}
         </div>
 
-        {/* Wishlist button — top right */}
         <button
           onClick={handleWishlist}
           className="absolute top-4 right-4 z-10 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
@@ -100,7 +94,6 @@ const ProductCard = ({ product }) => {
           <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500 text-red-500' : ''}`} />
         </button>
 
-        {/* Image + Name → clickable link */}
         <Link to={`/products/${product.id}`} className="block">
           <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-800">
             <img
@@ -115,14 +108,13 @@ const ProductCard = ({ product }) => {
             <h4 className="text-lg md:text-xl font-weight-200 italic font-athletic line-clamp-2">
               {product.name}
             </h4>
-            {/* Rating */}
+
             <div className="flex items-center gap-1 mt-2">
               {renderStars(Math.round(product.rating || 0))}
             </div>
           </div>
         </Link>
 
-        {/* Price */}
         <div className="px-6 pt-2">
           <div>
             <span className="text-2xl md:text-3xl font-black italic text-[#00a8e8] dark:text-white">
@@ -135,8 +127,7 @@ const ProductCard = ({ product }) => {
             )}
           </div>
         </div>
-
-        {/* ✅ ONLY THIS CHANGED - Add to Cart Full Width */}
+        
         <div className="px-6 pb-6 pt-4">
           <button
             onClick={handleAddToCart}

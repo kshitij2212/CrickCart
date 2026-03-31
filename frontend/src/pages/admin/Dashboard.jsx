@@ -12,8 +12,6 @@ import {
   Tag
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-
-// Admin Pages
 import Overview from './Overview';
 import ProductManagement from './ProductManagement';
 import OrderManagement from './OrderManagement';
@@ -73,13 +71,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
         } bg-[#00171f] text-white transition-all duration-300 flex flex-col fixed h-screen z-50`}
       >
-        {/* Header */}
         <div className="p-6 flex items-center justify-between border-b border-white/10">
           {sidebarOpen && (
             <h1 className="text-2xl font-black italic font-athletic">
@@ -94,7 +90,6 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Menu Items */}
         <nav className="flex-1 p-4 space-y-2">
           {menuItems.map((item) => (
             <Link
@@ -110,7 +105,6 @@ const Dashboard = () => {
           ))}
         </nav>
 
-        {/* User Section */}
         <div className="p-4 border-t border-white/10">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-10 h-10 bg-[#00a8e8] rounded-full flex items-center justify-center font-black">
@@ -133,7 +127,6 @@ const Dashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main
         className={`flex-1 ${
           sidebarOpen ? 'ml-64' : 'ml-20'

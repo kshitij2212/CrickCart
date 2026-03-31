@@ -14,10 +14,9 @@ const TICKER_ITEMS = [
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [categories, setCategories] = useState([]); // ✅ Dynamic categories
+  const [categories, setCategories] = useState([]);
   const { isAuthenticated } = useAuth();
 
-  // ✅ Fetch categories on mount
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -33,7 +32,6 @@ export default function Navbar() {
 
   return (
     <div>
-      {/* Ticker */}
       <div className="bg-[#00a8e8] h-7 overflow-hidden flex items-center">
         <div
           className="flex whitespace-nowrap"
@@ -55,12 +53,10 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Main Header */}
       <header className="sticky top-0 z-50 bg-[#001f3f] border-b-2 border-[#00a8e8] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
 
-            {/* Logo */}
             <Link
               to="/"
               className="text-3xl font-black italic tracking-tighter hover:opacity-80 transition"
@@ -68,7 +64,6 @@ export default function Navbar() {
               CRICK<span className="text-[#00a8e8]">CART</span>
             </Link>
 
-            {/* Desktop Search */}
             <div className="hidden md:flex flex-1 max-w-lg mx-8">
               <div className="relative w-full">
                 <input
@@ -84,10 +79,8 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Action Icons */}
             <div className="flex items-center gap-6">
 
-              {/* Wishlist */}
               <Link
                 to="/wishlist"
                 className="flex items-center justify-center w-10 h-10 hover:text-red-500 transition"
@@ -98,7 +91,6 @@ export default function Navbar() {
                 </span>
               </Link>
 
-              {/* Profile / Login */}
               <Link
                 to={isAuthenticated ? '/profile' : '/login'}
                 className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition"
@@ -109,7 +101,6 @@ export default function Navbar() {
                 </span>
               </Link>
 
-              {/* Cart */}
               <Link
                 to="/cart"
                 className="flex items-center justify-center w-10 h-10 hover:text-[#00a8e8] transition"
@@ -120,7 +111,6 @@ export default function Navbar() {
                 </span>
               </Link>
 
-              {/* Mobile Menu */}
               <button
                 className="md:hidden p-2 hover:text-[#00a8e8] transition"
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -134,7 +124,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Navigation Links - ✅ DYNAMIC */}
         <nav className="hidden md:block bg-[#00a8e8]/10 border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 flex justify-center space-x-8 py-3">
             <Link
@@ -156,7 +145,6 @@ export default function Navbar() {
           </div>
         </nav>
 
-        {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden bg-slate-900 border-t border-white/10">
             <div className="px-4 py-3 border-b border-white/10">

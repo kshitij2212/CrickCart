@@ -16,7 +16,6 @@ const Newsletter = () => {
 
     setLoading(true);
     
-    // Simulate API call
     setTimeout(() => {
       toast.success('Subscribed successfully!');
       setEmail('');

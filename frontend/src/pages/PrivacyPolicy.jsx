@@ -285,16 +285,11 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-white">
-
-      {/* Progress Bar */}
       <div
         className="fixed top-0 left-0 z-50 h-1 bg-[#00a8e8] transition-all duration-150"
         style={{ width: `${scrollProgress}%` }}
       />
-
-      {/* Hero */}
       <div className="bg-[#00171f] relative overflow-hidden">
-        {/* Background pattern */}
         <div className="absolute inset-0 opacity-[0.04]">
           {[...Array(5)].map((_, i) => (
             <div
@@ -313,7 +308,6 @@ const PrivacyPolicy = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-0 relative z-10">
-          {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-8">
             <Link to="/" className="hover:text-[#00a8e8] transition font-bold">Home</Link>
             <ChevronRight className="w-3 h-3" />
@@ -351,7 +345,6 @@ const PrivacyPolicy = () => {
             </div>
           </div>
 
-          {/* Section strip */}
           <div className="border-t border-white/10">
             <div className="py-3 flex items-center gap-4 overflow-x-auto no-scrollbar">
               {sections.map((s) => {
@@ -376,11 +369,9 @@ const PrivacyPolicy = () => {
         </div>
       </div>
 
-      {/* Body */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex gap-12">
 
-          {/* Sticky Sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24">
               <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Contents</p>
@@ -409,7 +400,6 @@ const PrivacyPolicy = () => {
                 })}
               </nav>
 
-              {/* Privacy contact */}
               <div className="mt-8 p-4 bg-[#00171f] rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
                   <Mail className="w-4 h-4 text-[#00a8e8]" />
@@ -419,7 +409,6 @@ const PrivacyPolicy = () => {
                 <p className="text-xs text-slate-400">Responds within 72 hours</p>
               </div>
 
-              {/* Related links */}
               <div className="mt-4 space-y-1">
                 <Link
                   to="/terms"
@@ -437,10 +426,7 @@ const PrivacyPolicy = () => {
             </div>
           </aside>
 
-          {/* Main Content */}
           <main className="flex-1 min-w-0">
-
-            {/* Key Facts Banner */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -462,7 +448,6 @@ const PrivacyPolicy = () => {
               })}
             </motion.div>
 
-            {/* Sections */}
             <div className="space-y-16">
               {sections.map((section) => {
                 const Icon = section.icon;
@@ -475,7 +460,6 @@ const PrivacyPolicy = () => {
                     viewport={{ once: true, margin: '-100px' }}
                     transition={{ duration: 0.4 }}
                   >
-                    {/* Section Header */}
                     <div className="flex items-start gap-5 mb-8 pb-6 border-b-2 border-slate-100">
                       <div className="flex-shrink-0">
                         <div className="w-14 h-14 bg-[#00171f] rounded-2xl flex items-center justify-center">
@@ -492,7 +476,6 @@ const PrivacyPolicy = () => {
                       </div>
                     </div>
 
-                    {/* Sub-sections */}
                     <div className="space-y-6">
                       {section.content.map((item, idx) => (
                         <div
@@ -513,7 +496,6 @@ const PrivacyPolicy = () => {
               })}
             </div>
 
-            {/* Footer */}
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}

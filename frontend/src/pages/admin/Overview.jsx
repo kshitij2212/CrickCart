@@ -58,7 +58,6 @@ const Overview = () => {
         <p className="text-gray-600 mt-2">Welcome, Admin!</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((stat, index) => (
           <div
@@ -80,7 +79,6 @@ const Overview = () => {
         ))}
       </div>
 
-      {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-black italic font-athletic mb-4">RECENT ORDERS</h2>
         <div className="overflow-x-auto">

@@ -19,8 +19,7 @@ const PLACEHOLDER_PRODUCTS = [
   { id: 8, name: 'Cricket Bag', price: 2199, image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=400&fit=crop', badge: 'CARRY' },
 ];
 
-// ─── Carousel Item ─────────────────────────────────────────────────────────────
-const CarouselItem = ({ product, index }) => {
+  const CarouselItem = ({ product, index }) => {
   const [hovered, setHovered] = useState(false);
   const productId = product.id;
   return (
@@ -30,7 +29,6 @@ const CarouselItem = ({ product, index }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Image */}
       <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl">
         <img
           src={product.images?.[0] || product.imageUrl}
@@ -38,15 +36,12 @@ const CarouselItem = ({ product, index }) => {
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#00171f] via-transparent to-transparent opacity-80" />
 
-        {/* Badge */}
         <div className="absolute top-4 left-4 bg-[#00a8e8] text-[#00171f] text-xs font-black tracking-widest px-3 py-1">
           {product.badge || 'FEATURED'}
         </div>
 
-        {/* Info */}
         <div className="absolute bottom-0 left-0 right-0 p-5">
           <p className="text-[#00a8e8] text-xs font-bold tracking-widest uppercase mb-1">
             Pro Gear
@@ -61,7 +56,6 @@ const CarouselItem = ({ product, index }) => {
           )}
         </div>
 
-        {/* Hover CTA */}
         <div
           className="absolute inset-0 flex items-center justify-center transition-opacity duration-300"
           style={{ opacity: hovered ? 1 : 0 }}
@@ -76,7 +70,6 @@ const CarouselItem = ({ product, index }) => {
   );
 };
 
-// ─── Skeleton Loader ──────────────────────────────────────────────────────────
 const SkeletonGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
     {[...Array(4)].map((_, i) => (
@@ -89,7 +82,6 @@ const SkeletonGrid = () => (
   </div>
 );
 
-// ─── Main Component ────────────────────────────────────────────────────────────
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +91,6 @@ const FeaturedProducts = () => {
   const carouselRef = useRef(null);
   const scrollTweenRef = useRef(null);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -114,17 +105,14 @@ const FeaturedProducts = () => {
     fetchProducts();
   }, []);
 
-  // ── GSAP Carousel Setup ────────────────────────────────────────────────────
   useEffect(() => {
     if (loading || mode !== 'carousel' || !carouselRef.current) return;
 
     const cont = carouselRef.current;
-    // Small delay to let DOM settle
     const timer = setTimeout(() => {
       const items = cont.querySelectorAll('.carousel-item');
       if (!items.length) return;
 
-      // Horizontal scroll tween
       scrollTweenRef.current = gsap.to(items, {
         ease: 'none',
         x: () => -(cont.scrollWidth - window.innerWidth + 200),
@@ -142,7 +130,6 @@ const FeaturedProducts = () => {
         },
       });
 
-      // Per-item entrance animations
       items.forEach((item, index) => {
         gsap.timeline({
           ease: 'none',
@@ -166,7 +153,6 @@ const FeaturedProducts = () => {
     };
   }, [loading, mode, products.length]);
 
-  // ── Grid navigation (prev/next) ────────────────────────────────────────────
   const [page, setPage] = useState(0);
   const PER_PAGE = 4;
   const totalPages = Math.ceil(products.length / PER_PAGE);
@@ -175,7 +161,6 @@ const FeaturedProducts = () => {
   return (
     <section className="mb-20 relative">
 
-      {/* ── Section Header ── */}
       <div className="flex items-end justify-between mb-10 border-b-2 border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h2 className="text-4xl md:text-5xl font-black italic text-[#00171f] dark:text-white leading-none">
@@ -187,7 +172,6 @@ const FeaturedProducts = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* View Mode Toggle */}
           <div className="flex gap-1 border-2 border-slate-200 dark:border-slate-800 p-1">
             <button
               onClick={() => setMode('grid')}
@@ -205,7 +189,6 @@ const FeaturedProducts = () => {
             </button>
           </div>
 
-          {/* Prev/Next (grid mode only) */}
           {mode === 'grid' && (
             <div className="flex gap-2">
               <button
@@ -227,10 +210,7 @@ const FeaturedProducts = () => {
         </div>
       </div>
 
-      {/* ── Loading State ── */}
       {loading && <SkeletonGrid />}
-
-      {/* ── Grid Mode ── */}
       {!loading && mode === 'grid' && (
         <AnimatePresence mode="wait">
           <motion.div
@@ -255,10 +235,8 @@ const FeaturedProducts = () => {
         </AnimatePresence>
       )}
 
-      {/* ── Carousel Mode ── */}
       {!loading && mode === 'carousel' && (
         <div>
-          {/* Scroll hint */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -267,7 +245,6 @@ const FeaturedProducts = () => {
             ↓ SCROLL TO EXPLORE THE COLLECTION ↓
           </motion.p>
 
-          {/* GSAP pinned carousel */}
           <div className="overflow-hidden">
             <div
               ref={carouselRef}
@@ -280,7 +257,6 @@ const FeaturedProducts = () => {
             </div>
           </div>
 
-          {/* Dot indicators */}
           <div className="flex justify-center gap-2 mt-8">
             {products.map((_, i) => (
               <div
@@ -297,7 +273,6 @@ const FeaturedProducts = () => {
         </div>
       )}
 
-      {/* Page indicator (grid mode) */}
       {!loading && mode === 'grid' && totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-8">
           {[...Array(totalPages)].map((_, i) => (

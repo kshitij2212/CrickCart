@@ -49,7 +49,6 @@ const Profile = () => {
     <div className="min-h-screen diagonal-bg py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl md:text-5xl font-black italic font-athletic text-[#00171f]">
             MY PROFILE
@@ -65,11 +64,9 @@ const Profile = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* Sidebar */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
 
-              {/* User Info */}
               <div className="p-6 border-b border-gray-100">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-20 h-20 bg-gradient-to-br from-[#00a8e8] to-[#0070a0] rounded-full flex items-center justify-center text-white text-3xl font-black mb-3 shadow-md shadow-[#00a8e8]/20">
@@ -83,7 +80,6 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* Nav Tabs */}
               <div>
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -116,11 +112,8 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="md:col-span-2">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-
-              {/* Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
                 <div>
                   <h2 className="text-xl font-black italic text-[#00171f]">

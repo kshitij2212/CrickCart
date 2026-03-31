@@ -8,7 +8,6 @@ const OrderManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // TODO: Fetch orders from API
     setTimeout(() => {
       setOrders([
         {
@@ -26,7 +25,6 @@ const OrderManagement = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      // TODO: Update order status API call
       toast.success('Order status updated');
     } catch (error) {
       toast.error('Failed to update status');
@@ -39,7 +37,6 @@ const OrderManagement = () => {
         ORDER MANAGEMENT
       </h1>
 
-      {/* Search */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -53,7 +50,6 @@ const OrderManagement = () => {
         </div>
       </div>
 
-      {/* Orders Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
