@@ -1,9 +1,6 @@
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 
-// @desc    Get user cart
-// @route   GET /api/v1/cart
-// @access  Private
 exports.getCart = async (req, res) => {
     try {
         let cart = await Cart.findOne({ user: req.user.id })
@@ -31,9 +28,6 @@ exports.getCart = async (req, res) => {
     }
 };
 
-// @desc    Add item to cart
-// @route   POST /api/v1/cart/add
-// @access  Private
 exports.addToCart = async (req, res) => {
     try {
         const { productId, quantity } = req.body;
@@ -117,9 +111,6 @@ exports.addToCart = async (req, res) => {
     }
 };
 
-// @desc    Update cart item quantity
-// @route   PUT /api/v1/cart/:itemId
-// @access  Private
 exports.updateCartItem = async (req, res) => {
     try {
         const { quantity } = req.body;
@@ -151,7 +142,6 @@ exports.updateCartItem = async (req, res) => {
             });
         }
 
-        // Check stock
         const product = await Product.findById(cart.items[itemIndex].product);
         if (product.countInStock < quantity) {
             return res.status(400).json({
@@ -163,7 +153,6 @@ exports.updateCartItem = async (req, res) => {
         cart.items[itemIndex].quantity = quantity;
         await cart.save();
 
-        // Populate and return
         cart = await Cart.findById(cart._id).populate({
             path: 'items.product',
             select: 'name price discount images slug countInStock'
@@ -184,9 +173,6 @@ exports.updateCartItem = async (req, res) => {
     }
 };
 
-// @desc    Remove item from cart
-// @route   DELETE /api/v1/cart/:itemId
-// @access  Private
 exports.removeFromCart = async (req, res) => {
     try {
         let cart = await Cart.findOne({ user: req.user.id });
@@ -204,7 +190,6 @@ exports.removeFromCart = async (req, res) => {
 
         await cart.save();
 
-        // Populate and return
         cart = await Cart.findById(cart._id).populate({
             path: 'items.product',
             select: 'name price discount images slug countInStock'
@@ -225,9 +210,6 @@ exports.removeFromCart = async (req, res) => {
     }
 };
 
-// @desc    Clear cart
-// @route   DELETE /api/v1/cart
-// @access  Private
 exports.clearCart = async (req, res) => {
     try {
         let cart = await Cart.findOne({ user: req.user.id });

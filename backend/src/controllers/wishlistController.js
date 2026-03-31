@@ -1,7 +1,6 @@
 const Wishlist = require('../models/Wishlist');
 const Product = require('../models/Product');
 
-// GET /api/v1/wishlist
 exports.getWishlist = async (req, res) => {
     try {
         let wishlist = await Wishlist.findOne({ user: req.user.id })
@@ -17,7 +16,6 @@ exports.getWishlist = async (req, res) => {
     }
 };
 
-// POST /api/v1/wishlist/toggle
 exports.toggleWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
@@ -55,7 +53,6 @@ exports.toggleWishlist = async (req, res) => {
     }
 };
 
-// DELETE /api/v1/wishlist/:productId
 exports.removeFromWishlist = async (req, res) => {
     try {
         const { productId } = req.params;

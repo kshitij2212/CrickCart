@@ -3,7 +3,6 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
 
-// Order Status Constants
 const ORDER_STATUS = {
     PENDING: 'Pending',
     PROCESSING: 'Processing',
@@ -21,9 +20,6 @@ const PAYMENT_STATUS = {
     REFUNDED: 'Refunded'
 };
 
-// @desc    Create new order with transaction
-// @route   POST /api/orders
-// @access  Private
 exports.createOrder = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -57,7 +53,6 @@ exports.createOrder = async (req, res) => {
             });
         }
 
-        // ✅ FIX 1: Atomic stock update with session
         for (let item of orderItems) {
             const product = await Product.findOneAndUpdate(
                 {
@@ -82,7 +77,6 @@ exports.createOrder = async (req, res) => {
             }
         }
 
-        // ✅ FIX 2: Generate order number with retry
         let orderNumber;
         let attempts = 0;
         const maxAttempts = 5;
@@ -103,12 +97,10 @@ exports.createOrder = async (req, res) => {
             }
         }
 
-        // ✅ FIX 3: Realistic payment status
         const paymentStatus = paymentMethod === 'COD' 
             ? PAYMENT_STATUS.PENDING 
-            : PAYMENT_STATUS.PENDING; // All start as pending, gateway callback will update
+            : PAYMENT_STATUS.PENDING;
 
-        // Create order
         const order = await Order.create([{
             orderNumber,
             user: req.user.id,
@@ -128,17 +120,14 @@ exports.createOrder = async (req, res) => {
             orderStatus: ORDER_STATUS.PENDING
         }], { session });
 
-        // Clear user's cart
         await Cart.findOneAndUpdate(
             { user: req.user.id },
             { items: [] },
             { session }
         );
 
-        // ✅ Commit transaction
         await session.commitTransaction();
 
-        // ✅ FIX 4: Use lean() for read-only
         const populatedOrder = await Order.findById(order[0]._id)
             .populate('orderItems.product', 'name slug images')
             .populate('user', 'name email phone')
@@ -163,9 +152,6 @@ exports.createOrder = async (req, res) => {
     }
 };
 
-// @desc    Get user orders
-// @route   GET /api/orders/myorders
-// @access  Private
 exports.getMyOrders = async (req, res) => {
     try {
         const {
@@ -182,7 +168,7 @@ exports.getMyOrders = async (req, res) => {
             .sort('-createdAt')
             .limit(Number(limit))
             .skip((Number(page) - 1) * Number(limit))
-            .lean(); // ✅ FIX 4: Use lean()
+            .lean();
 
         const count = await Order.countDocuments(query);
 
@@ -204,9 +190,6 @@ exports.getMyOrders = async (req, res) => {
     }
 };
 
-// @desc    Get order by ID
-// @route   GET /api/orders/:id
-// @access  Private
 exports.getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -221,7 +204,6 @@ exports.getOrderById = async (req, res) => {
             });
         }
 
-        // Check authorization
         if (order.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(403).json({
                 success: false,
@@ -243,9 +225,6 @@ exports.getOrderById = async (req, res) => {
     }
 };
 
-// @desc    Payment callback (webhook from payment gateway)
-// @route   PUT /api/orders/:id/pay
-// @access  Private
 exports.updateOrderToPaid = async (req, res) => {
     try {
         const { transactionId, provider, status } = req.body;
@@ -259,7 +238,6 @@ exports.updateOrderToPaid = async (req, res) => {
             });
         }
 
-        // ✅ Realistic payment status handling
         order.payment.status = status === 'success' 
             ? PAYMENT_STATUS.COMPLETED 
             : PAYMENT_STATUS.FAILED;
@@ -288,9 +266,7 @@ exports.updateOrderToPaid = async (req, res) => {
     }
 };
 
-// @desc    Cancel order with transaction
-// @route   PUT /api/orders/:id/cancel
-// @access  Private
+
 exports.cancelOrder = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -315,7 +291,6 @@ exports.cancelOrder = async (req, res) => {
             });
         }
 
-        // Check if cancellable
         if (![ORDER_STATUS.PENDING, ORDER_STATUS.PROCESSING].includes(order.orderStatus)) {
             await session.abortTransaction();
             return res.status(400).json({
@@ -327,7 +302,6 @@ exports.cancelOrder = async (req, res) => {
         order.orderStatus = ORDER_STATUS.CANCELLED;
         order.cancelledAt = Date.now();
 
-        // ✅ Atomic stock restore
         for (let item of order.orderItems) {
             await Product.findByIdAndUpdate(
                 item.product,
@@ -336,7 +310,6 @@ exports.cancelOrder = async (req, res) => {
             );
         }
 
-        // Handle refund
         if (order.payment.status === PAYMENT_STATUS.COMPLETED) {
             order.payment.status = PAYMENT_STATUS.REFUNDED;
             order.payment.refundedAt = Date.now();
@@ -363,9 +336,6 @@ exports.cancelOrder = async (req, res) => {
     }
 };
 
-// @desc    Request return
-// @route   PUT /api/orders/:id/return
-// @access  Private
 exports.requestReturn = async (req, res) => {
     try {
         const { reason } = req.body;
@@ -422,9 +392,6 @@ exports.requestReturn = async (req, res) => {
     }
 };
 
-// @desc    Get all orders (Admin)
-// @route   GET /api/orders
-// @access  Private/Admin
 exports.getAllOrders = async (req, res) => {
     try {
         const {
@@ -444,7 +411,7 @@ exports.getAllOrders = async (req, res) => {
             .sort('-createdAt')
             .limit(Number(limit))
             .skip((Number(page) - 1) * Number(limit))
-            .lean(); // ✅ Use lean()
+            .lean();
 
         const count = await Order.countDocuments(query);
 
@@ -466,9 +433,6 @@ exports.getAllOrders = async (req, res) => {
     }
 };
 
-// @desc    Update order status (Admin)
-// @route   PUT /api/orders/:id/status
-// @access  Private/Admin
 exports.updateOrderStatus = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -512,7 +476,6 @@ exports.updateOrderStatus = async (req, res) => {
             order.payment.status = PAYMENT_STATUS.REFUNDED;
             order.payment.refundedAt = Date.now();
             
-            // ✅ Atomic stock restore
             for (let item of order.orderItems) {
                 await Product.findByIdAndUpdate(
                     item.product,

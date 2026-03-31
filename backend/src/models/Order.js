@@ -95,7 +95,6 @@ const orderSchema = new mongoose.Schema({
 
 orderSchema.index({ user: 1, createdAt: -1 });
 
-// Safe orderNumber generation
 orderSchema.statics.generateOrderNumber = async function() {
     const year = new Date().getFullYear();
     const timestamp = Date.now().toString().slice(-6);
