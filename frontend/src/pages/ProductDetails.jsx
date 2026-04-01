@@ -60,7 +60,7 @@ const ProductDetails = () => {
     }
 
     if (quantity > product.countInStock) {
-      toast.error(`Only ${product.countInStock} items available`);
+      toast.error("No more quantity available");
       return;
     }
 
@@ -102,7 +102,7 @@ const ProductDetails = () => {
       if (product.countInStock === 0) {
         toast.error('Out of stock');
       } else {
-        toast.error(`Only ${product.countInStock} items available`);
+        toast.error("No more quantity available");
       }
     }
   };

@@ -51,7 +51,7 @@ exports.addToCart = async (req, res) => {
         if (product.countInStock < requestedQuantity) {
             return res.status(400).json({
                 success: false,
-                message: `Only ${product.countInStock} items available in stock`
+                message: "No more quantity available"
             });
         }
 
@@ -74,7 +74,7 @@ exports.addToCart = async (req, res) => {
             if (product.countInStock < newQuantity) {
                 return res.status(400).json({
                     success: false,
-                    message: `Only ${product.countInStock} items available in stock`
+                    message: "No more quantity available"
                 });
             }
 
@@ -146,7 +146,7 @@ exports.updateCartItem = async (req, res) => {
         if (product.countInStock < quantity) {
             return res.status(400).json({
                 success: false,
-                message: `Only ${product.countInStock} items available in stock`
+                message: "No more quantity available"
             });
         }
 

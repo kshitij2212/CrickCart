@@ -8,10 +8,12 @@ import { useWishlist } from '../../hooks/useWishlist';
 
 const ProductCard = ({ product }) => {
 
-   if (!product || !product.id) {
+  if (!product || !product.id) {
     console.error('Invalid product:', product);
     return null;
   }
+
+  const isOutOfStock = product.countInStock === 0;
 
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -73,11 +75,16 @@ const ProductCard = ({ product }) => {
       transition={{ duration: 0.3 }}
       className="relative"
     >
-      <div className="bg-white dark:bg-slate-900 card-hover transition-all duration-300 border border-slate-100 dark:border-slate-800 relative group">
+      <div className={`bg-white dark:bg-slate-900 card-hover transition-all duration-300 border border-slate-100 dark:border-slate-800 relative group ${isOutOfStock ? 'opacity-60' : ''}`}>
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {product.isFeatured && (
             <span className="metallic-badge text-[10px] font-black px-2 py-0.5 text-[#00171f] italic uppercase">
               Performance
+            </span>
+          )}
+          {isOutOfStock && (
+            <span className="bg-gray-800 text-white text-[10px] font-black px-2 py-0.5 italic uppercase">
+              Out of Stock
             </span>
           )}
           {product.discount && product.discount > 0 && (
@@ -131,10 +138,15 @@ const ProductCard = ({ product }) => {
         <div className="px-6 pb-6 pt-4">
           <button
             onClick={handleAddToCart}
-            className="w-full bg-[#00171f] dark:bg-[#00a8e8] text-white py-3 font-black italic rounded hover:bg-[#00a8e8] dark:hover:bg-[#0095d1] transition-all flex items-center justify-center gap-2"
+            disabled={isOutOfStock}
+            className={`w-full text-white py-3 font-black italic rounded transition-all flex items-center justify-center gap-2 ${
+              isOutOfStock
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[#00171f] dark:bg-[#00a8e8] hover:bg-[#00a8e8] dark:hover:bg-[#0095d1]'
+            }`}
           >
             <ShoppingCart className="w-5 h-5" />
-            ADD TO CART
+            {isOutOfStock ? 'OUT OF STOCK' : 'ADD TO CART'}
           </button>
         </div>
 

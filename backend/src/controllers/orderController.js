@@ -57,7 +57,7 @@ exports.createOrder = async (req, res) => {
             const product = await Product.findOneAndUpdate(
                 {
                     _id: item.product,
-                    countInStock: { $gte: item.quantity } // ✅ Only update if stock available
+                    countInStock: { $gte: item.quantity }
                 },
                 {
                     $inc: { countInStock: -item.quantity }
