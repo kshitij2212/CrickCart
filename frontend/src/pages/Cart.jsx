@@ -33,7 +33,7 @@ const Cart = () => {
       await updateCartItem(itemId, newQuantity);
       toast.success('Quantity updated!', { duration: 1500 });
     } catch (error) {
-      toast.error('Failed to update quantity');
+      toast.error(error.response?.data?.message || 'Failed to update quantity');
     } finally {
       setUpdating({ ...updating, [itemId]: false });
     }

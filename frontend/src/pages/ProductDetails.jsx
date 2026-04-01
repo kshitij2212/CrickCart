@@ -24,6 +24,7 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
 
   const wishlisted = product ? checkIsWishlisted(product.id) : false;
+  const isOutOfStock = product?.countInStock === 0;
 
   useEffect(() => {
     fetchProduct();
@@ -44,7 +45,7 @@ const ProductDetails = () => {
         setRelatedProducts(related.data.filter((p) => p.id !== id).slice(0, 4));
       }
     } catch (error) {
-      console.error('❌ Error fetching product:', error);
+      console.error('Error fetching product:', error);
       toast.error('Product not found');
       navigate('/products');
     } finally {
@@ -58,16 +59,15 @@ const ProductDetails = () => {
       navigate('/login');
       return;
     }
-
-    if (quantity > product.countInStock) {
-      toast.error("No more quantity available");
-      return;
-    }
-
     try {
-      await addToCart(product.id, quantity);
+      const res = await addToCart(product.id, quantity);
+      if (res?.success) {
+        toast.success('Added to cart!', { duration: 1500 });
+      } else {
+        toast.error(res?.message || 'Failed to add to cart');
+      }
     } catch (error) {
-      console.error('Add to cart error:', error);
+      toast.error(error.response?.data?.message || 'Failed to add to cart');
     }
   };
 
@@ -77,8 +77,12 @@ const ProductDetails = () => {
       navigate('/login');
       return;
     }
-    await handleAddToCart();
-    navigate('/checkout');
+    const res = await addToCart(product.id, quantity);
+    if (res?.success) {
+      navigate('/checkout');
+    } else {
+      toast.error(res?.message || 'Cannot proceed to checkout');
+    }
   };
 
   const handleWishlist = async () => {
@@ -87,7 +91,6 @@ const ProductDetails = () => {
       navigate('/login');
       return;
     }
-
     try {
       await toggleWishlist(product.id);
     } catch (error) {
@@ -99,18 +102,12 @@ const ProductDetails = () => {
     if (quantity < product.countInStock) {
       setQuantity(quantity + 1);
     } else {
-      if (product.countInStock === 0) {
-        toast.error('Out of stock');
-      } else {
-        toast.error("No more quantity available");
-      }
+      toast.error(`Only ${product.countInStock} items available`);
     }
   };
 
   const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
+    if (quantity > 1) setQuantity(quantity - 1);
   };
 
   const renderStars = (rating) => {
@@ -118,9 +115,7 @@ const ProductDetails = () => {
       <Star
         key={`star-${i}`}
         className={`w-4 h-4 ${
-          i < Math.round(rating)
-            ? 'text-yellow-400 fill-yellow-300'
-            : 'text-slate-300'
+          i < Math.round(rating) ? 'text-yellow-400 fill-yellow-300' : 'text-slate-300'
         }`}
       />
     ));
@@ -134,22 +129,15 @@ const ProductDetails = () => {
     );
   }
 
-  if (!product) {
-    return null;
-  }
+  if (!product) return null;
 
   return (
     <div className="diagonal-bg min-h-screen">
       <nav className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 pt-8 pb-4">
         <div className="flex items-center space-x-2 text-xs uppercase tracking-widest font-bold font-athletic italic text-gray-600">
-          <Link to="/" className="hover:text-[#00a8e8] transition">
-            SHOP
-          </Link>
+          <Link to="/" className="hover:text-[#00a8e8] transition">SHOP</Link>
           <ChevronRight className="w-3 h-3" />
-          <Link
-            to={`/products?category=${product.category?.slug}`}
-            className="hover:text-[#00a8e8] transition"
-          >
+          <Link to={`/products?category=${product.category?.slug}`} className="hover:text-[#00a8e8] transition">
             {product.category?.name || 'PRODUCTS'}
           </Link>
           <ChevronRight className="w-3 h-3" />
@@ -159,6 +147,8 @@ const ProductDetails = () => {
 
       <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 pb-20">
         <div className="flex flex-col lg:flex-row gap-12 items-start">
+
+          {/* Left: Gallery */}
           <motion.section
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -168,16 +158,21 @@ const ProductDetails = () => {
             <div className="relative aspect-[3/3] bg-slate-50 rounded-xl overflow-hidden mesh-texture group border border-slate-100">
               {product.isFeatured && (
                 <div className="absolute top-6 left-6 z-10 bg-[#00a8e8] text-white font-athletic font-black italic px-4 py-1 transform -skew-x-12 shadow-lg">
-                  <span className="inline-block transform skew-x-12 uppercase tracking-tighter">
-                    NEW RELEASE
-                  </span>
+                  <span className="inline-block transform skew-x-12 uppercase tracking-tighter">NEW RELEASE</span>
                 </div>
               )}
 
               {product.discount > 0 && (
                 <div className="absolute top-6 right-6 z-10 bg-[#ef4444] text-white font-athletic font-black italic px-3 py-1 transform -skew-x-12 shadow-lg">
-                  <span className="inline-block transform skew-x-12">
-                    {product.discount}% OFF
+                  <span className="inline-block transform skew-x-12">{product.discount}% OFF</span>
+                </div>
+              )}
+
+              {/* Out of Stock Overlay */}
+              {isOutOfStock && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                  <span className="bg-white text-[#00171f] font-black italic text-xl px-6 py-2 transform -skew-x-12">
+                    <span className="inline-block skew-x-12">OUT OF STOCK</span>
                   </span>
                 </div>
               )}
@@ -185,7 +180,7 @@ const ProductDetails = () => {
               <img
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                src={product.images?.[selectedImage] || 'https://via.placeholder.com/600'}
+                src={product.images?.[selectedImage]}
               />
               <div className="absolute inset-0 pointer-events-none opacity-10 bg-gradient-to-tr from-[#00a8e8]/10 to-transparent"></div>
             </div>
@@ -201,16 +196,13 @@ const ProductDetails = () => {
                       : 'border border-slate-100 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img
-                    className="w-full h-full object-cover"
-                    src={image}
-                    alt={`${product.name} view ${index + 1}`}
-                  />
+                  <img className="w-full h-full object-cover" src={image} alt={`${product.name} view ${index + 1}`} />
                 </div>
               ))}
             </div>
           </motion.section>
 
+          {/* Right: Info */}
           <motion.section
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -221,7 +213,6 @@ const ProductDetails = () => {
               <h1 className="text-3xl md:text-4xl font-athletic font-black italic uppercase leading-none text-[#00171f] mb-4">
                 {product.name}
               </h1>
-
               <div className="flex items-center space-x-4">
                 <div className="flex">{renderStars(product.rating || 0)}</div>
                 <span className="text-xs font-semibold text-gray-600">
@@ -230,6 +221,7 @@ const ProductDetails = () => {
               </div>
             </div>
 
+            {/* Price Card */}
             <div className="p-6 bg-white rounded-2xl border-l-4 border-[#00a8e8] shadow-lg relative">
               <div className="flex flex-col space-y-1">
                 {product.discount > 0 && (
@@ -237,65 +229,55 @@ const ProductDetails = () => {
                     ₹{product.price}
                   </span>
                 )}
-
                 <div className="flex items-baseline space-x-4">
                   <span className="text-4xl md:text-5xl font-athletic font-black italic text-[#00171f]">
                     ₹{Math.round(product.finalPrice || product.price)}
                   </span>
-
                   {product.discount > 0 && (
                     <span className="bg-[#ef4444] text-white px-2 py-1 rounded text-xs font-black font-athletic italic transform -skew-x-12">
-                      <span className="inline-block transform skew-x-12">
-                        {product.discount}% OFF
-                      </span>
+                      <span className="inline-block transform skew-x-12">{product.discount}% OFF</span>
                     </span>
                   )}
                 </div>
               </div>
 
               <div className="mt-4 flex items-center space-x-2">
-                {product.countInStock > 0 ? (
+                {!isOutOfStock ? (
                   <>
                     <CheckCircle className="w-4 h-4 text-[#10b981]" />
-                    <span className="text-[#10b981] font-bold text-xs uppercase tracking-wider">
-                      In Stock
-                    </span>
+                    <span className="text-[#10b981] font-bold text-xs uppercase tracking-wider">In Stock</span>
                   </>
                 ) : (
                   <>
                     <XCircle className="w-4 h-4 text-[#ef4444]" />
-                    <span className="text-[#ef4444] font-bold text-xs uppercase tracking-wider">
-                      Out of Stock
-                    </span>
+                    <span className="text-[#ef4444] font-bold text-xs uppercase tracking-wider">Out of Stock</span>
                   </>
                 )}
               </div>
 
               <div className="grid grid-cols-2 gap-y-4 mt-6 pt-6 border-t border-slate-100">
                 <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
-                  <span className="text-lg">🚚</span>
-                  <span>Minimal Shipping</span>
+                  <span className="text-lg">🚚</span><span>Minimal Shipping</span>
                 </div>
                 <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
-                  <span className="text-lg">↩️</span>
-                  <span>Easy Returns</span>
+                  <span className="text-lg">↩️</span><span>Easy Returns</span>
                 </div>
                 <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
-                  <span className="text-lg">🛡️</span>
-                  <span>1yr Warranty</span>
+                  <span className="text-lg">🛡️</span><span>1yr Warranty</span>
                 </div>
                 <div className="flex items-center space-x-2 text-[10px] font-bold text-gray-600 uppercase">
-                  <span className="text-lg">✓</span>
-                  <span>Authentic</span>
+                  <span className="text-lg">✓</span><span>Authentic</span>
                 </div>
               </div>
             </div>
 
+            {/* Quantity & Wishlist */}
             <div className="flex items-center space-x-6">
-              <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1">
+              <div className={`flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1 ${isOutOfStock ? 'opacity-40' : ''}`}>
                 <button
                   onClick={decrementQuantity}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-lg transition-colors text-slate-600"
+                  disabled={isOutOfStock}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-lg transition-colors text-slate-600 disabled:cursor-not-allowed"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -304,7 +286,8 @@ const ProductDetails = () => {
                 </span>
                 <button
                   onClick={incrementQuantity}
-                  className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-lg transition-colors text-slate-600"
+                  disabled={isOutOfStock}
+                  className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-lg transition-colors text-slate-600 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -314,23 +297,22 @@ const ProductDetails = () => {
                 onClick={handleWishlist}
                 className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:text-[#ef4444] hover:border-[#ef4444] transition-all group"
               >
-                <Heart
-                  className={`w-5 h-5 transition-transform group-active:scale-125 ${
-                    wishlisted ? 'fill-[#ef4444] text-[#ef4444]' : ''
-                  }`}
-                />
+                <Heart className={`w-5 h-5 transition-transform group-active:scale-125 ${wishlisted ? 'fill-[#ef4444] text-[#ef4444]' : ''}`} />
               </button>
             </div>
 
+            {/* Action Buttons */}
             <div className="grid grid-cols-1 gap-4">
               <button
                 onClick={handleAddToCart}
-                disabled={product.countInStock === 0}
-                className="group bg-[#00a8e8] text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg hover:brightness-110 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isOutOfStock}
+                className={`group text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed ${
+                  isOutOfStock ? 'bg-gray-400' : 'bg-[#00a8e8] hover:brightness-110'
+                }`}
               >
                 <div className="transform skew-x-12 flex items-center justify-center space-x-2">
                   <ShoppingCart className="w-5 h-5" />
-                  <span>ADD TO CART</span>
+                  <span>{isOutOfStock ? 'OUT OF STOCK' : 'ADD TO CART'}</span>
                 </div>
               </button>
 
@@ -338,12 +320,14 @@ const ProductDetails = () => {
                 <div className="absolute inset-0 speed-lines opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
                 <button
                   onClick={handleBuyNow}
-                  disabled={product.countInStock === 0}
-                  className="w-full bg-[#00171f] text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg hover:brightness-110 transition-all active:scale-[0.98] relative z-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isOutOfStock}
+                  className={`w-full text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg transition-all active:scale-[0.98] relative z-10 disabled:cursor-not-allowed ${
+                    isOutOfStock ? 'bg-gray-400' : 'bg-[#00171f] hover:brightness-110'
+                  }`}
                 >
                   <div className="transform skew-x-12 flex items-center justify-center space-x-2">
                     <span className="text-2xl">⚡</span>
-                    <span>BUY NOW</span>
+                    <span>{isOutOfStock ? 'UNAVAILABLE' : 'BUY NOW'}</span>
                   </div>
                 </button>
               </div>
@@ -351,14 +335,13 @@ const ProductDetails = () => {
           </motion.section>
         </div>
 
+        {/* Tabs */}
         <section className="mt-24">
           <div className="flex space-x-8 mb-1 border-b border-slate-100 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('description')}
               className={`pb-4 font-athletic font-black italic uppercase tracking-widest transition-colors relative ${
-                activeTab === 'description'
-                  ? 'text-[#00a8e8]'
-                  : 'text-slate-400 hover:text-[#00171f]'
+                activeTab === 'description' ? 'text-[#00a8e8]' : 'text-slate-400 hover:text-[#00171f]'
               }`}
             >
               DESCRIPTION
@@ -370,9 +353,7 @@ const ProductDetails = () => {
             <button
               onClick={() => setActiveTab('reviews')}
               className={`pb-4 font-athletic font-black italic uppercase tracking-widest transition-colors relative ${
-                activeTab === 'reviews'
-                  ? 'text-[#00a8e8]'
-                  : 'text-slate-400 hover:text-[#00171f]'
+                activeTab === 'reviews' ? 'text-[#00a8e8]' : 'text-slate-400 hover:text-[#00171f]'
               }`}
             >
               REVIEWS ({product.numReviews || 0})
@@ -388,9 +369,7 @@ const ProductDetails = () => {
                 <h3 className="font-athletic font-black italic text-2xl uppercase text-[#00a8e8] mb-6">
                   PRODUCT DESCRIPTION
                 </h3>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {product.description}
-                </p>
+                <p className="text-gray-700 leading-relaxed whitespace-pre-line">{product.description}</p>
               </div>
             ) : (
               <div>
@@ -398,15 +377,14 @@ const ProductDetails = () => {
                   CUSTOMER REVIEWS
                 </h3>
                 <div className="text-center py-12">
-                  <p className="text-gray-500 italic">
-                    No reviews yet. Be the first to review this product!
-                  </p>
+                  <p className="text-gray-500 italic">No reviews yet. Be the first to review this product!</p>
                 </div>
               </div>
             )}
           </div>
         </section>
 
+        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <section className="mt-24">
             <h2 className="text-4xl font-athletic font-black italic uppercase tracking-tighter mb-10 flex items-center space-x-4">
@@ -424,21 +402,11 @@ const ProductDetails = () => {
 
       <style>{`
         .mesh-texture {
-          background-image: radial-gradient(
-            circle at 2px 2px,
-            rgba(0, 168, 232, 0.08) 1px,
-            transparent 0
-          );
+          background-image: radial-gradient(circle at 2px 2px, rgba(0, 168, 232, 0.08) 1px, transparent 0);
           background-size: 24px 24px;
         }
         .speed-lines {
-          background-image: repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 10px,
-            rgba(0, 168, 232, 0.05) 10px,
-            rgba(0, 168, 232, 0.05) 12px
-          );
+          background-image: repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(0, 168, 232, 0.05) 10px, rgba(0, 168, 232, 0.05) 12px);
         }
       `}</style>
     </div>

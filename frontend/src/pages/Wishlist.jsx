@@ -10,7 +10,6 @@ const Wishlist = () => {
   const { wishlist, loading, fetchWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  // ✅ Fetch wishlist on mount
   useEffect(() => {
     fetchWishlist();
   }, []);
@@ -23,10 +22,19 @@ const Wishlist = () => {
     }
   };
 
- const handleAddToCart = (item) => {
+const handleAddToCart = async (item) => {
     const product = item.product || item;
     const productId = product._id || product.id;
-    addToCart(productId, 1);
+    if (product.countInStock === 0) {
+        toast.error('Product is out of stock');
+        return;
+    }
+    try {
+        await addToCart(productId, 1);
+        toast.success('Added to cart!');
+    } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to add to cart');
+    }
 };
 
   if (loading) {
@@ -103,7 +111,14 @@ const Wishlist = () => {
                   </button>
 
                   <Link to={`/products/${productId}`}>
-                    <div className="h-64 bg-slate-100">
+                    <div className="h-64 bg-slate-100 relative">
+                      {product.countInStock === 0 && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
+                          <span className="bg-white text-[#00171f] font-black italic px-4 py-1 text-sm transform -skew-x-12">
+                            <span className="inline-block skew-x-12">OUT OF STOCK</span>
+                          </span>
+                        </div>
+                      )}
                       <img
                         src={product.images?.[0]}
                         alt={product.name || 'Product'}
@@ -142,10 +157,15 @@ const Wishlist = () => {
 
                   <button
                     onClick={() => handleAddToCart(item)}
-                    className="w-full bg-[#00171f] text-white font-black italic py-3 rounded hover:bg-[#00a8e8] transition flex items-center justify-center gap-2"
+                    disabled={product.countInStock === 0}
+                    className={`w-full text-white font-black italic py-3 rounded transition flex items-center justify-center gap-2 ${
+                        product.countInStock === 0
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-[#00171f] hover:bg-[#00a8e8]'
+                    }`}
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    ADD TO CART
+                    {product.countInStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
                   </button>
                 </div>
               </motion.div>

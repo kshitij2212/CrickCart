@@ -55,20 +55,17 @@ exports.addToCart = async (req, res) => {
             });
         }
 
-        // ✅ Find or create cart
         let cart = await Cart.findOne({ user: req.user.id });
 
         if (!cart) {
             cart = await Cart.create({ user: req.user.id, items: [] });
         }
 
-        // ✅ Check if product already in cart
         const existingItemIndex = cart.items.findIndex(
             item => item.product.toString() === productId
         );
 
         if (existingItemIndex > -1) {
-            // ✅ Update quantity
             const newQuantity = cart.items[existingItemIndex].quantity + requestedQuantity;
 
             if (product.countInStock < newQuantity) {
@@ -80,7 +77,6 @@ exports.addToCart = async (req, res) => {
 
             cart.items[existingItemIndex].quantity = newQuantity;
         } else {
-            // ✅ Add new item
             cart.items.push({
                 product: productId,
                 quantity: requestedQuantity,
@@ -90,7 +86,6 @@ exports.addToCart = async (req, res) => {
 
         await cart.save();
 
-        // ✅ Populate and return
         cart = await Cart.findById(cart._id).populate({
             path: 'items.product',
             select: 'name price discount images slug countInStock'

@@ -24,9 +24,8 @@ export const CartProvider = ({ children }) => {
     try {
       const { data } = await api.post('/cart/add', { productId, quantity });
       setCart(data.data);
-      toast.success('Added to cart!');
+      return data;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add to cart');
       throw error;
     }
   };
@@ -35,7 +34,6 @@ export const CartProvider = ({ children }) => {
     try {
       const { data } = await api.put(`/cart/${itemId}`, { quantity });
       setCart(data.data);
-      // toast.success('Cart updated!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update cart');
       throw error;
