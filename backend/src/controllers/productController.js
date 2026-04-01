@@ -99,13 +99,14 @@ exports.getAllProducts = async (req, res) => {
         } = req.query;
 
         let query = {};
+        const mongoose = require('mongoose');
+
+        console.log("REQ QUERY:", req.query);
 
         if (category) {
-            const mongoose = require('mongoose');
             if (mongoose.Types.ObjectId.isValid(category)) {
                 query.category = category;
             } else {
-                const Category = require('../models/Category');
                 const categoryDoc = await Category.findOne({ slug: category });
                 if (!categoryDoc) {
                     return res.status(404).json({
@@ -118,11 +119,26 @@ exports.getAllProducts = async (req, res) => {
         }
 
         if (brand) {
-            const mongoose = require('mongoose');
+            const Brand = require('../models/Brand');
+
             if (mongoose.Types.ObjectId.isValid(brand)) {
                 query.brand = brand;
             } else {
-                query.brand = { $regex: brand, $options: 'i' };
+                const brandDoc = await Brand.findOne({
+                    $or: [
+                        { slug: brand },
+                        { name: { $regex: brand, $options: 'i' } }
+                    ]
+                });
+
+                if (!brandDoc) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Brand not found"
+                    });
+                }
+
+                query.brand = brandDoc._id;
             }
         }
 
@@ -131,23 +147,34 @@ exports.getAllProducts = async (req, res) => {
             if (minPrice) query.price.$gte = Number(minPrice);
             if (maxPrice) query.price.$lte = Number(maxPrice);
         }
-        
+
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } },
-                { brand: { $regex: search, $options: 'i' } }
             ];
         }
-        
-        if (featured) query.isFeatured = featured === 'true';
 
-        const products = await Product.find(query)
+        if (featured !== undefined) {
+            query.isFeatured = featured === 'true';
+        }
+
+        console.log("FINAL QUERY:", JSON.stringify(query, null, 2));
+
+        const rawProducts = await Product.find(query)
             .populate('category', 'name slug color')
-            .populate('brand', 'name slug logo')
-            .sort(sort)
+            .sort(typeof sort === 'string' ? sort : '-createdAt')
             .limit(Number(limit))
             .skip((Number(page) - 1) * Number(limit));
+
+        console.log("RAW PRODUCTS FETCHED:", rawProducts.length);
+
+        const products = await Product.populate(rawProducts, {
+            path: 'brand',
+            select: 'name slug logo'
+        });
+
+        console.log("BRAND POPULATE SUCCESS");
 
         const count = await Product.countDocuments(query);
 
@@ -155,11 +182,14 @@ exports.getAllProducts = async (req, res) => {
             success: true,
             count: products.length,
             total: count,
-            totalPages: Math.ceil(count / limit),
+            totalPages: Math.ceil(count / Number(limit)),
             currentPage: Number(page),
             data: products
         });
     } catch (error) {
+        console.error("GET ALL PRODUCTS ERROR MESSAGE:", error.message);
+        console.error("GET ALL PRODUCTS STACK:", error.stack);
+
         res.status(500).json({
             success: false,
             message: 'Server Error',

@@ -22,19 +22,34 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
 
   useEffect(() => {
-  const urlCategory = searchParams.get('category') || '';
-  const urlSearch = searchParams.get('search') || '';
-  const urlPage = parseInt(searchParams.get('page')) || 1;
-  
-  setSelectedCategory(urlCategory);
-  setSearchQuery(urlSearch);
-  setCurrentPage(urlPage);
-}, [searchParams]);
+    const urlCategory = searchParams.get('category') || '';
+    const urlSearch = searchParams.get('search') || '';
+    const urlPage = parseInt(searchParams.get('page')) || 1;
+    const urlMin = searchParams.get('minPrice') || '';
+    const urlMax = searchParams.get('maxPrice') || '';
+    const urlSort = searchParams.get('sort') || '';
 
-useEffect(() => {
-  fetchCategories();
-  fetchProducts();
-}, [selectedCategory, minPrice, maxPrice, sortBy, searchQuery, currentPage]);
+    setSelectedCategory(urlCategory);
+    setSearchQuery(urlSearch);
+    setCurrentPage(urlPage);
+    setMinPrice(urlMin);
+    setMaxPrice(urlMax);
+    setSortBy(urlSort);
+
+    fetchProducts({
+      category: urlCategory,
+      search: urlSearch,
+      page: urlPage,
+      minPrice: urlMin,
+      maxPrice: urlMax,
+      sort: urlSort,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const fetchCategories = async () => {
     try {
@@ -45,60 +60,49 @@ useEffect(() => {
     }
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = async ({ category, search, page, minPrice, maxPrice, sort } = {}) => {
     try {
       setLoading(true);
       
-      const params = {
-        page: currentPage,
-        limit: 12,
-      };
-      
-      if (selectedCategory) params.category = selectedCategory;
-      if (searchQuery) params.search = searchQuery;
+      const params = { page: page || 1, limit: 12 };
+      if (category) params.category = category;
+      if (search) params.search = search;
       if (minPrice) params.minPrice = Number(minPrice);
       if (maxPrice) params.maxPrice = Number(maxPrice);
-      if (sortBy) params.sort = sortBy;
+      if (sort) params.sort = sort;
       
       const response = await productService.getProducts(params);
 
-let filteredProducts = response.data || response.products || [];
+      let filteredProducts = response.data || response.products || [];
 
-if (minPrice || maxPrice) {
-  filteredProducts = filteredProducts.filter(product => {
-    const finalPrice =
-      product.finalPrice ||
-      (product.discount
-        ? product.price - (product.price * product.discount / 100)
-        : product.price);
+      if (minPrice || maxPrice) {
+        filteredProducts = filteredProducts.filter(product => {
+          const finalPrice = product.finalPrice ||
+            (product.discount
+              ? product.price - (product.price * product.discount / 100)
+              : product.price);
+          if (minPrice && finalPrice < Number(minPrice)) return false;
+          if (maxPrice && finalPrice > Number(maxPrice)) return false;
+          return true;
+        });
+      }
 
-    if (minPrice && finalPrice < Number(minPrice)) return false;
-    if (maxPrice && finalPrice > Number(maxPrice)) return false;
-    return true;
-  });
-}
+      setProducts(filteredProducts);
 
-setProducts(filteredProducts);
+      const pages = response.pagination?.pages ||
+        response.pagination?.totalPages ||
+        response.totalPages || 1;
 
-const pages =
-  response.pagination?.pages ||
-  response.pagination?.totalPages ||
-  response.totalPages ||
-  response.pages ||
-  1;
+      const total = response.pagination?.total ||
+        response.pagination?.totalProducts ||
+        response.totalProducts ||
+        filteredProducts.length;
 
-const total =
-  response.pagination?.total ||
-  response.pagination?.totalProducts ||
-  response.totalProducts ||
-  response.total ||
-  filteredProducts.length;
-
-setTotalPages(pages);
-setTotalProducts(total);
+      setTotalPages(pages);
+      setTotalProducts(total);
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+
     } catch (error) {
       console.error('Error fetching products:', error);
       setProducts([]);
@@ -108,24 +112,14 @@ setTotalProducts(total);
   };
 
   const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
-    setCurrentPage(1);
-    
     const params = new URLSearchParams(searchParams);
-    if (categoryId) {
-      params.set('category', categoryId);
-    } else {
-      params.delete('category');
-    }
+    if (categoryId) params.set('category', categoryId);
+    else params.delete('category');
     params.set('page', '1');
     setSearchParams(params);
   };
 
   const handlePriceRange = (min, max) => {
-    setMinPrice(min);
-    setMaxPrice(max);
-    setCurrentPage(1);
-    
     const params = new URLSearchParams(searchParams);
     if (min) params.set('minPrice', min);
     else params.delete('minPrice');
@@ -135,20 +129,20 @@ setTotalProducts(total);
     setSearchParams(params);
   };
 
+  const handleSort = (value) => {
+    const params = new URLSearchParams(searchParams);
+    if (value) params.set('sort', value);
+    else params.delete('sort');
+    setSearchParams(params);
+  };
+
   const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
     const params = new URLSearchParams(searchParams);
     params.set('page', newPage.toString());
     setSearchParams(params);
   };
 
   const clearFilters = () => {
-    setSelectedCategory('');
-    setMinPrice('');
-    setMaxPrice('');
-    setSortBy('');
-    setSearchQuery('');
-    setCurrentPage(1);
     setSearchParams({});
   };
 
@@ -232,6 +226,7 @@ setTotalProducts(total);
             </button>
           </>
         )}
+
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
@@ -298,9 +293,9 @@ setTotalProducts(total);
                 {categories.map((category) => (
                   <button
                     key={category._id || category.id || category.slug}
-                    onClick={() => handleCategoryChange(category.id)}
+                    onClick={() => handleCategoryChange(category._id || category.id)}
                     className={`w-full text-left px-4 py-2 rounded font-bold transition ${
-                      selectedCategory === category.id
+                      selectedCategory === (category._id || category.id)
                         ? 'bg-[#00a8e8] text-white'
                         : 'hover:bg-slate-100 text-gray-700'
                     }`}
@@ -344,7 +339,6 @@ setTotalProducts(total);
           </aside>
 
           <main className="flex-1">
-            
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <button
                 onClick={() => setShowMobileFilters(true)}
@@ -361,7 +355,7 @@ setTotalProducts(total);
 
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => handleSort(e.target.value)}
                 className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-black italic text-sm cursor-pointer focus:border-[#00a8e8] focus:ring-0"
               >
                 <option value="">FEATURED</option>
@@ -375,7 +369,7 @@ setTotalProducts(total);
             <div className="hidden lg:flex justify-end mb-6 -mt-[65px]">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => handleSort(e.target.value)}
                 className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-black italic cursor-pointer focus:border-[#00a8e8] focus:ring-0"
               >
                 <option value="">FEATURED</option>
@@ -402,13 +396,12 @@ setTotalProducts(total);
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {products.map((product, index) => (
-                    <ProductCard 
+                    <ProductCard
                       key={product._id || product.id || `product-${index}`}
-                      product={product} 
+                      product={product}
                     />
                   ))}
                 </div>
-
                 <Pagination />
               </>
             )}
@@ -417,11 +410,10 @@ setTotalProducts(total);
 
         {showMobileFilters && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div 
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
-              onClick={() => setShowMobileFilters(false)} 
+            <div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowMobileFilters(false)}
             />
-            
             <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-2xl overflow-y-auto">
               <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex items-center justify-between z-10">
                 <h2 className="font-athletic font-black italic text-xl">FILTERS</h2>
@@ -435,29 +427,19 @@ setTotalProducts(total);
                   <h3 className="font-athletic font-black italic text-lg mb-3">CATEGORIES</h3>
                   <div className="space-y-2">
                     <button
-                      onClick={() => {
-                        handleCategoryChange('');
-                        setShowMobileFilters(false);
-                      }}
+                      onClick={() => { handleCategoryChange(''); setShowMobileFilters(false); }}
                       className={`w-full text-left px-4 py-2 rounded font-bold ${
-                        selectedCategory === '' 
-                          ? 'bg-[#00a8e8] text-white' 
-                          : 'hover:bg-slate-100'
+                        selectedCategory === '' ? 'bg-[#00a8e8] text-white' : 'hover:bg-slate-100'
                       }`}
                     >
                       All Products
                     </button>
                     {categories.map((category) => (
                       <button
-                        key={category.id || category._id || category.slug}
-                        onClick={() => {
-                          handleCategoryChange(category.id);
-                          setShowMobileFilters(false);
-                        }}
+                        key={category._id || category.id || category.slug}
+                        onClick={() => { handleCategoryChange(category._id || category.id); setShowMobileFilters(false); }}
                         className={`w-full text-left px-4 py-2 rounded font-bold ${
-                          selectedCategory === category.id
-                            ? 'bg-[#00a8e8] text-white' 
-                            : 'hover:bg-slate-100'
+                          selectedCategory === (category._id || category.id) ? 'bg-[#00a8e8] text-white' : 'hover:bg-slate-100'
                         }`}
                       >
                         {category.name}
@@ -477,10 +459,7 @@ setTotalProducts(total);
                     ].map((range, idx) => (
                       <button
                         key={`mobile-price-${idx}`}
-                        onClick={() => {
-                          handlePriceRange(range.min, range.max);
-                          setShowMobileFilters(false);
-                        }}
+                        onClick={() => { handlePriceRange(range.min, range.max); setShowMobileFilters(false); }}
                         className="w-full text-left px-4 py-2 rounded hover:bg-slate-100 text-gray-700 text-sm"
                       >
                         {range.label}
@@ -491,10 +470,7 @@ setTotalProducts(total);
 
                 {activeFiltersCount > 0 && (
                   <button
-                    onClick={() => {
-                      clearFilters();
-                      setShowMobileFilters(false);
-                    }}
+                    onClick={() => { clearFilters(); setShowMobileFilters(false); }}
                     className="w-full bg-slate-200 text-slate-800 font-black py-3 rounded"
                   >
                     CLEAR ALL ({activeFiltersCount})

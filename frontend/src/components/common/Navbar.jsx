@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import categoryService from "../../services/categoryService";
 
@@ -16,6 +16,16 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState([]);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const handleSearch = (e) => {
+  if (e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) {
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      setMenuOpen(false);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -72,8 +82,12 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearch}
                 />
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#00a8e8] text-[20px]">
+                <span 
+                  className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#00a8e8] text-[20px] cursor-pointer"
+                  onClick={handleSearch}
+                >
                   search
                 </span>
               </div>
@@ -153,6 +167,7 @@ export default function Navbar() {
                 placeholder="SEARCH ELITE GEAR..."
                 type="text"
                 value={searchQuery}
+                onKeyDown={handleSearch}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>

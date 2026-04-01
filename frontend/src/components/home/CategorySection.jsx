@@ -12,7 +12,8 @@ const CategorySection = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await api.get('/categories');
-        setCategories(data.data || data.categories || data);
+        const categoriesData = data?.data?.categories || data?.categories || data?.data || [];
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
       } catch (error) {
         console.error('Error fetching categories:', error);
         setError(error.message);
