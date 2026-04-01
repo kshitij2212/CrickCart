@@ -29,6 +29,22 @@ useEffect(() => {
   console.log('Loading complete');
 }, []);
 
+  const googleLogin = async (credential) => {
+    try {
+        const { data } = await api.post('/users/google', { credential });
+        
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        
+        toast.success('Login successful!');
+        return data.user;
+    } catch (error) {
+        toast.error(error.response?.data?.message || 'Google login failed');
+        throw error;
+    }
+  };
+
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/users/login', { email, password });
@@ -88,6 +104,7 @@ useEffect(() => {
     user,
     login,
     register,
+    googleLogin,
     logout,
     loading,
     isAuthenticated: !!user,

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import GoogleAuthButton from '../components/auth/GoogleAuthButton';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -78,6 +79,15 @@ const Login = () => {
             REGISTER
           </Link>
         </p>
+        <div className="mt-6">
+          <div className="relative flex items-center justify-center mb-4">
+            <div className="border-t border-slate-700 w-full" />
+            <span className="absolute bg-white dark:bg-slate-900 px-3 text-slate-500 text-xs font-bold">
+              OR CONTINUE WITH
+            </span>
+          </div>
+          <GoogleAuthButton />
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,11 @@
 import api from './api';
 
 export const authService = {
+
+  googleLogin: async (credential) => {
+    const { data } = await api.post('/users/google', { credential });
+    return data;
+  },
   register: async (userData) => {
     const { data } = await api.post('/users/register', userData);
     return data;

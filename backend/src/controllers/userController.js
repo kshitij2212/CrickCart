@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (id,role) => {
     if (!process.env.JWT_SECRET) {
@@ -159,3 +160,55 @@ exports.logout = async (req,res) => {
             error: error.message
         });
     }}
+
+exports.googleAuth = async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({ success: false, message: 'Credential is required' });
+        }
+
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const { email, name, picture, sub: googleId } = ticket.getPayload();
+
+        let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+        if (!user) {
+            user = await User.create({
+                name,
+                email,
+                googleId,
+                avatar: picture,
+                isGoogleUser: true,
+            });
+        } else if (!user.googleId) {
+            user.googleId = googleId;
+            user.avatar = picture;
+            user.isGoogleUser = true;
+            await user.save();
+        }
+
+        const token = generateToken(user._id, user.role);
+
+        res.status(200).json({
+            success: true,
+            message: 'Google login successful',
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                avatar: user.avatar,
+                role: user.role,
+            }
+        });
+    } catch (error) {
+        res.status(401).json({ success: false, message: 'Google auth failed', error: error.message });
+    }
+};
