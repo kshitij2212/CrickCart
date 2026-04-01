@@ -295,10 +295,10 @@ const ProductDetails = () => {
 
               <button
                 onClick={handleWishlist}
-                disabled={isToggling ? true : undefined}
-                className="absolute top-4 right-4 z-10 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                disabled={isToggling(product.id)}
+                className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
               >
-                {isToggling ? (
+                {isToggling(product.id) ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400" />
                 ) : (
                   <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500 text-red-500' : ''}`} />
