@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 const Wishlist = () => {
   const { wishlist, loading, fetchWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
-
   useEffect(() => {
     fetchWishlist();
   }, []);
@@ -74,6 +73,7 @@ const handleAddToCart = async (item) => {
       </div>
     );
   }
+  console.log('wishlist items:', wishlist.map(i => ({ name: i.product?.name, countInStock: i.product?.countInStock })));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
