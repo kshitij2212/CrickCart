@@ -14,7 +14,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
-  const { toggleWishlist, isWishlisted: checkIsWishlisted } = useWishlist();
+  const { toggleWishlist, isWishlisted: checkIsWishlisted, isToggling } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -295,13 +295,17 @@ const ProductDetails = () => {
 
               <button
                 onClick={handleWishlist}
-                className="w-12 h-12 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:text-[#ef4444] hover:border-[#ef4444] transition-all group"
+                disabled={isToggling ? true : undefined}
+                className="absolute top-4 right-4 z-10 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
               >
-                <Heart className={`w-5 h-5 transition-transform group-active:scale-125 ${wishlisted ? 'fill-[#ef4444] text-[#ef4444]' : ''}`} />
+                {isToggling ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400" />
+                ) : (
+                  <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+                )}
               </button>
             </div>
 
-            {/* Action Buttons */}
             <div className="grid grid-cols-1 gap-4">
               <button
                 onClick={handleAddToCart}
@@ -335,7 +339,6 @@ const ProductDetails = () => {
           </motion.section>
         </div>
 
-        {/* Tabs */}
         <section className="mt-24">
           <div className="flex space-x-8 mb-1 border-b border-slate-100 overflow-x-auto scrollbar-hide">
             <button
@@ -384,7 +387,6 @@ const ProductDetails = () => {
           </div>
         </section>
 
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <section className="mt-24">
             <h2 className="text-4xl font-athletic font-black italic uppercase tracking-tighter mb-10 flex items-center space-x-4">

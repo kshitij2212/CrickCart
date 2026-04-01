@@ -130,7 +130,7 @@ const handleSubmit = async (e) => {
           brands.map((brand) => (
             <div
               key={brand._id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-slate-100"
+              className="bg-white rounded-xl shadow-md hover:shadow-xl transition border border-slate-100"
             >
               <div className="relative h-48 bg-slate-50 flex items-center justify-center p-6">
                 <img

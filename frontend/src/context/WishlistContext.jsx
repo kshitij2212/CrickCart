@@ -7,6 +7,7 @@ export const WishlistContext = createContext();
 export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [togglingIds, setTogglingIds] = useState(new Set());
 
     const fetchWishlist = async (showLoading = true) => {
         try {
@@ -23,15 +24,22 @@ export const WishlistProvider = ({ children }) => {
 
     const toggleWishlist = async (productId) => {
         try {
+            setTogglingIds(prev => new Set(prev).add(productId));
             const data = await wishlistService.toggleWishlist(productId);
             await fetchWishlist(false);
             toast.success(data.message || 'Wishlist updated');
         } catch (error) {
-            console.error('Toggle error:', error);
             toast.error('Error updating wishlist');
             throw error;
+        } finally {
+            setTogglingIds(prev => {
+                const next = new Set(prev);
+                next.delete(productId);
+                return next;
+            });
         }
     };
+    const isToggling = (productId) => togglingIds.has(productId);
 
     const removeFromWishlist = async (productId) => {
         try {
@@ -66,6 +74,7 @@ export const WishlistProvider = ({ children }) => {
         toggleWishlist,
         removeFromWishlist,
         isWishlisted,
+        isToggling,
         itemCount: wishlist.length,
     };
 

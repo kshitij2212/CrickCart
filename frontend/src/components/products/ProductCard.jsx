@@ -18,7 +18,7 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
-  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { toggleWishlist, isWishlisted, isToggling } = useWishlist();
 
   const productId = product.id;
 
@@ -96,9 +96,14 @@ const ProductCard = ({ product }) => {
 
         <button
           onClick={handleWishlist}
-          className="absolute top-4 right-4 z-10 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
+          disabled={isToggling(productId)}
+          className="absolute top-4 right-4 z-10 w-8 h-8 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
         >
-          <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+          {isToggling(productId) ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400" />
+            ) : (
+            <Heart className={`w-4 h-4 ${wishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+          )}
         </button>
 
         <Link to={`/products/${product.id}`} className="block">

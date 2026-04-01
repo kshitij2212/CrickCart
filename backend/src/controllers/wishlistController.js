@@ -6,10 +6,12 @@ exports.getWishlist = async (req, res) => {
     try {
         let wishlist = await Wishlist.findOne({ user: req.user.id })
             .populate('items.product')
+            .lean()
         console.log('product data:', JSON.stringify(wishlist?.items?.[0]?.product, null, 2));
 
         if (!wishlist) {
-            wishlist = await Wishlist.create({ user: req.user.id, items: [] });
+            await Wishlist.create({ user: req.user.id, items: [] });
+            return res.status(200).json({ success: true, data: { items: [] } });
         }
 
         res.status(200).json({ success: true, data: wishlist });

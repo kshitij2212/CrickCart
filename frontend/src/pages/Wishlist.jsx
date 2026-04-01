@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 const Wishlist = () => {
   const { wishlist, loading, fetchWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+
   useEffect(() => {
     fetchWishlist();
   }, []);
@@ -21,20 +22,11 @@ const Wishlist = () => {
     }
   };
 
-const handleAddToCart = async (item) => {
+  const handleAddToCart = (item) => {
     const product = item.product || item;
     const productId = product._id || product.id;
-    if (product.countInStock === 0) {
-        toast.error('Product is out of stock');
-        return;
-    }
-    try {
-        await addToCart(productId, 1);
-        toast.success('Added to cart!');
-    } catch (error) {
-        toast.error(error.response?.data?.message || 'Failed to add to cart');
-    }
-};
+    addToCart(productId, 1);
+  };
 
   if (loading) {
     return (
@@ -73,11 +65,11 @@ const handleAddToCart = async (item) => {
       </div>
     );
   }
-  console.log('wishlist items:', wishlist.map(i => ({ name: i.product?.name, countInStock: i.product?.countInStock })));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl md:text-5xl font-black italic text-[#00171f] mb-2">
@@ -88,6 +80,7 @@ const handleAddToCart = async (item) => {
             </p>
           </div>
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {wishlist.map((item) => {
             const product = item.product || item;
@@ -100,25 +93,18 @@ const handleAddToCart = async (item) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-slate-100"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition border border-slate-100"
               >
-                <div className="relative">
+                <div className="relative overflow-hidden rounded-t-xl">
                   <button
-                    onClick={() => handleRemove(productId)}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemove(productId); }}
                     className="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur p-2 rounded-full hover:bg-red-50 transition group"
                   >
                     <Trash2 className="w-4 h-4 text-gray-600 group-hover:text-red-600 transition" />
                   </button>
 
                   <Link to={`/products/${productId}`}>
-                    <div className="h-64 bg-slate-100 relative">
-                      {product.countInStock === 0 && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
-                          <span className="bg-white text-[#00171f] font-black italic px-4 py-1 text-sm transform -skew-x-12">
-                            <span className="inline-block skew-x-12">OUT OF STOCK</span>
-                          </span>
-                        </div>
-                      )}
+                    <div className="h-64 bg-slate-100">
                       <img
                         src={product.images?.[0]}
                         alt={product.name || 'Product'}
@@ -157,15 +143,10 @@ const handleAddToCart = async (item) => {
 
                   <button
                     onClick={() => handleAddToCart(item)}
-                    disabled={product.countInStock === 0}
-                    className={`w-full text-white font-black italic py-3 rounded transition flex items-center justify-center gap-2 ${
-                        product.countInStock === 0
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-[#00171f] hover:bg-[#00a8e8]'
-                    }`}
+                    className="w-full bg-[#00171f] text-white font-black italic py-3 rounded hover:bg-[#00a8e8] transition flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    {product.countInStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+                    ADD TO CART
                   </button>
                 </div>
               </motion.div>
