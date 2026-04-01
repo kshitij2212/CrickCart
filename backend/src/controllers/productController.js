@@ -85,117 +85,142 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.getAllProducts = async (req, res) => {
-    try {
-        const {
-            category,
-            brand,
-            minPrice,
-            maxPrice,
-            search,
-            featured,
-            sort = '-createdAt',
-            page = 1,
-            limit = 12
-        } = req.query;
+  try {
+    const {
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      search,
+      featured,
+      sort = "-createdAt",
+      page = 1,
+      limit = 12,
+    } = req.query;
 
-        let query = {};
-        const mongoose = require('mongoose');
+    const mongoose = require("mongoose");
+    const Brand = require("../models/Brand");
 
-        console.log("REQ QUERY:", req.query);
+    const pageNumber = Number(page) || 1;
+    const limitNumber = Number(limit) || 12;
+    const skip = (pageNumber - 1) * limitNumber;
 
-        if (category) {
-            if (mongoose.Types.ObjectId.isValid(category)) {
-                query.category = category;
-            } else {
-                const categoryDoc = await Category.findOne({ slug: category });
-                if (!categoryDoc) {
-                    return res.status(404).json({
-                        success: false,
-                        message: "Category not found"
-                    });
-                }
-                query.category = categoryDoc._id;
-            }
-        }
+    let query = {};
 
-        if (brand) {
-            const Brand = require('../models/Brand');
+    console.log("REQ QUERY:", req.query);
 
-            if (mongoose.Types.ObjectId.isValid(brand)) {
-                query.brand = brand;
-            } else {
-                const brandDoc = await Brand.findOne({
-                    $or: [
-                        { slug: brand },
-                        { name: { $regex: brand, $options: 'i' } }
-                    ]
-                });
+    // CATEGORY FILTER
+    if (category) {
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        query.category = category;
+      } else {
+        const categoryDoc = await Category.findOne({ slug: category });
 
-                if (!brandDoc) {
-                    return res.status(404).json({
-                        success: false,
-                        message: "Brand not found"
-                    });
-                }
-
-                query.brand = brandDoc._id;
-            }
-        }
-
-        if (minPrice || maxPrice) {
-            query.price = {};
-            if (minPrice) query.price.$gte = Number(minPrice);
-            if (maxPrice) query.price.$lte = Number(maxPrice);
-        }
-
-        if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } },
-            ];
-        }
-
-        if (featured !== undefined) {
-            query.isFeatured = featured === 'true';
-        }
-
-        console.log("FINAL QUERY:", JSON.stringify(query, null, 2));
-
-        const rawProducts = await Product.find(query)
-            .populate('category', 'name slug color')
-            .sort(typeof sort === 'string' ? sort : '-createdAt')
-            .limit(Number(limit))
-            .skip((Number(page) - 1) * Number(limit));
-
-        console.log("RAW PRODUCTS FETCHED:", rawProducts.length);
-
-        const products = await Product.populate(rawProducts, {
-            path: 'brand',
-            select: 'name slug logo'
-        });
-
-        console.log("BRAND POPULATE SUCCESS");
-
-        const count = await Product.countDocuments(query);
-
-        res.status(200).json({
+        if (!categoryDoc) {
+          return res.status(200).json({
             success: true,
-            count: products.length,
-            total: count,
-            totalPages: Math.ceil(count / Number(limit)),
-            currentPage: Number(page),
-            data: products
-        });
-    } catch (error) {
-        console.error("GET ALL PRODUCTS ERROR MESSAGE:", error.message);
-        console.error("GET ALL PRODUCTS STACK:", error.stack);
+            count: 0,
+            total: 0,
+            totalPages: 0,
+            currentPage: pageNumber,
+            data: [],
+          });
+        }
 
-        res.status(500).json({
-            success: false,
-            message: 'Server Error',
-            error: error.message
-        });
+        query.category = categoryDoc._id;
+      }
     }
+
+    // BRAND FILTER
+    if (brand) {
+      if (mongoose.Types.ObjectId.isValid(brand)) {
+        query.brand = brand;
+      } else {
+        const brandDoc = await Brand.findOne({
+          $or: [
+            { slug: brand },
+            { name: { $regex: brand, $options: "i" } },
+          ],
+        });
+
+        if (!brandDoc) {
+          return res.status(200).json({
+            success: true,
+            count: 0,
+            total: 0,
+            totalPages: 0,
+            currentPage: pageNumber,
+            data: [],
+          });
+        }
+
+        query.brand = brandDoc._id;
+      }
+    }
+
+    // SEARCH FILTER
+    if (search && search.trim()) {
+      const searchValue = search.trim();
+      query.$or = [
+        { name: { $regex: searchValue, $options: "i" } },
+        { description: { $regex: searchValue, $options: "i" } },
+      ];
+    }
+
+    // FEATURED FILTER
+    if (featured !== undefined) {
+      query.isFeatured = featured === "true";
+    }
+
+    console.log("FINAL QUERY:", JSON.stringify(query, null, 2));
+
+    // FETCH ALL MATCHING PRODUCTS FIRST
+    let allProducts = await Product.find(query)
+      .populate("category", "name slug color")
+      .populate("brand", "name slug logo")
+      .sort(typeof sort === "string" ? sort : "-createdAt");
+
+    console.log("ALL MATCHING PRODUCTS:", allProducts.length);
+
+    // APPLY FINAL PRICE FILTER IN JS (important because finalPrice is virtual)
+    if (minPrice || maxPrice) {
+      allProducts = allProducts.filter((product) => {
+        const finalPrice =
+          product.discount && product.discount > 0
+            ? product.price - (product.price * product.discount) / 100
+            : product.price;
+
+        if (minPrice && finalPrice < Number(minPrice)) return false;
+        if (maxPrice && finalPrice > Number(maxPrice)) return false;
+
+        return true;
+      });
+    }
+
+    const totalFiltered = allProducts.length;
+    const totalPages = Math.ceil(totalFiltered / limitNumber);
+
+    // PAGINATION AFTER ALL FILTERS
+    const paginatedProducts = allProducts.slice(skip, skip + limitNumber);
+
+    res.status(200).json({
+      success: true,
+      count: paginatedProducts.length,
+      total: totalFiltered,
+      totalPages,
+      currentPage: pageNumber,
+      data: paginatedProducts,
+    });
+  } catch (error) {
+    console.error("GET ALL PRODUCTS ERROR MESSAGE:", error.message);
+    console.error("GET ALL PRODUCTS STACK:", error.stack);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
 };
 
 exports.getFeaturedProducts = async (req, res) => {

@@ -22,12 +22,12 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
 
   useEffect(() => {
-    const urlCategory = searchParams.get('category') || '';
-    const urlSearch = searchParams.get('search') || '';
-    const urlPage = parseInt(searchParams.get('page')) || 1;
-    const urlMin = searchParams.get('minPrice') || '';
-    const urlMax = searchParams.get('maxPrice') || '';
-    const urlSort = searchParams.get('sort') || '';
+    const urlPage = Number(searchParams.get("page")) || 1;
+    const urlCategory = searchParams.get("category") || "";
+    const urlSearch = searchParams.get("search") || "";
+    const urlMin = searchParams.get("minPrice") || "";
+    const urlMax = searchParams.get("maxPrice") || "";
+    const urlSort = searchParams.get("sort") || "-createdAt";
 
     setSelectedCategory(urlCategory);
     setSearchQuery(urlSearch);
@@ -37,15 +37,15 @@ const Products = () => {
     setSortBy(urlSort);
 
     fetchProducts({
-      category: urlCategory,
-      search: urlSearch,
-      page: urlPage,
-      minPrice: urlMin,
-      maxPrice: urlMax,
-      sort: urlSort,
+    category: urlCategory,
+    search: urlSearch,
+    page: urlPage,
+    minPrice: urlMin,
+    maxPrice: urlMax,
+    sort: urlSort,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+  
 
   useEffect(() => {
     fetchCategories();
@@ -61,55 +61,47 @@ const Products = () => {
   };
 
   const fetchProducts = async ({ category, search, page, minPrice, maxPrice, sort } = {}) => {
-    try {
-      setLoading(true);
-      
-      const params = { page: page || 1, limit: 12 };
-      if (category) params.category = category;
-      if (search) params.search = search;
-      if (minPrice) params.minPrice = Number(minPrice);
-      if (maxPrice) params.maxPrice = Number(maxPrice);
-      if (sort) params.sort = sort;
-      
-      const response = await productService.getProducts(params);
+  try {
+    setLoading(true);
 
-      let filteredProducts = response.data || response.products || [];
+    const params = { page: page || 1, limit: 12 };
+    if (category) params.category = category;
+    if (search) params.search = search;
+    if (minPrice) params.minPrice = Number(minPrice);
+    if (maxPrice) params.maxPrice = Number(maxPrice);
+    if (sort) params.sort = sort;
 
-      if (minPrice || maxPrice) {
-        filteredProducts = filteredProducts.filter(product => {
-          const finalPrice = product.finalPrice ||
-            (product.discount
-              ? product.price - (product.price * product.discount / 100)
-              : product.price);
-          if (minPrice && finalPrice < Number(minPrice)) return false;
-          if (maxPrice && finalPrice > Number(maxPrice)) return false;
-          return true;
-        });
-      }
+    const response = await productService.getProducts(params);
 
-      setProducts(filteredProducts);
+    const fetchedProducts = response.data || [];
 
-      const pages = response.pagination?.pages ||
-        response.pagination?.totalPages ||
-        response.totalPages || 1;
+    setProducts(fetchedProducts);
 
-      const total = response.pagination?.total ||
-        response.pagination?.totalProducts ||
-        response.totalProducts ||
-        filteredProducts.length;
+    const pages =
+      response.totalPages ||
+      response.pagination?.pages ||
+      response.pagination?.totalPages ||
+      1;
 
-      setTotalPages(pages);
-      setTotalProducts(total);
+    const total =
+      response.total ||
+      response.pagination?.total ||
+      response.pagination?.totalProducts ||
+      fetchedProducts.length;
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTotalPages(pages);
+    setTotalProducts(total);
 
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    setProducts([]);
+    setTotalPages(1);
+    setTotalProducts(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCategoryChange = (categoryId) => {
     const params = new URLSearchParams(searchParams);
@@ -130,10 +122,11 @@ const Products = () => {
   };
 
   const handleSort = (value) => {
-    const params = new URLSearchParams(searchParams);
-    if (value) params.set('sort', value);
-    else params.delete('sort');
-    setSearchParams(params);
+  const params = new URLSearchParams(searchParams);
+  if (value) params.set('sort', value);
+  else params.delete('sort');
+  params.set('page', '1');
+  setSearchParams(params);
   };
 
   const handlePageChange = (newPage) => {
