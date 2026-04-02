@@ -54,13 +54,12 @@ const orderSchema = new mongoose.Schema({
         status: {
             type: String,
             required: true,
-            enum: ['Pending', 'Completed', 'Failed', 'Refunded'],
+            enum: ['Pending', 'Completed', 'Failed'],
             default: 'Pending'
         },
         transactionId: String,
         provider: String,
-        paidAt: Date,
-        refundedAt: Date
+        paidAt: Date
     },
     pricing: {
         itemsPrice: Number,
@@ -81,21 +80,18 @@ const orderSchema = new mongoose.Schema({
     orderStatus: {
         type: String,
         required: true,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned'],
+        enum: ['Pending', 'Processing', 'Shipped', 'Delivered'],
         default: 'Pending',
         index: true
     },
-    deliveredAt: Date,
-    cancelledAt: Date,
-    returnRequestedAt: Date,
-    returnedAt: Date
+    deliveredAt: Date
 }, {
     timestamps: true
 });
 
 orderSchema.index({ user: 1, createdAt: -1 });
 
-orderSchema.statics.generateOrderNumber = async function() {
+orderSchema.statics.generateOrderNumber = async function () {
     const year = new Date().getFullYear();
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');

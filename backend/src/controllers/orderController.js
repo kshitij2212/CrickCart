@@ -4,20 +4,23 @@ const Product = require('../models/Product');
 const mongoose = require('mongoose');
 
 const ORDER_STATUS = {
-    PENDING: 'Pending',
+    PENDING:    'Pending',
     PROCESSING: 'Processing',
-    SHIPPED: 'Shipped',
-    DELIVERED: 'Delivered',
-    CANCELLED: 'Cancelled',
-    RETURN_REQUESTED: 'Return Requested',
-    RETURNED: 'Returned'
+    SHIPPED:    'Shipped',
+    DELIVERED:  'Delivered'
 };
 
 const PAYMENT_STATUS = {
-    PENDING: 'Pending',
+    PENDING:   'Pending',
     COMPLETED: 'Completed',
-    FAILED: 'Failed',
-    REFUNDED: 'Refunded'
+    FAILED:    'Failed'
+};
+
+const VALID_TRANSITIONS = {
+    [ORDER_STATUS.PENDING]:    [ORDER_STATUS.PROCESSING],
+    [ORDER_STATUS.PROCESSING]: [ORDER_STATUS.SHIPPED],
+    [ORDER_STATUS.SHIPPED]:    [ORDER_STATUS.DELIVERED],
+    [ORDER_STATUS.DELIVERED]:  []
 };
 
 exports.createOrder = async (req, res) => {
@@ -36,7 +39,6 @@ exports.createOrder = async (req, res) => {
             totalPrice
         } = req.body;
 
-        // Validation
         if (!orderItems || orderItems.length === 0) {
             await session.abortTransaction();
             return res.status(400).json({
@@ -77,48 +79,50 @@ exports.createOrder = async (req, res) => {
             }
         }
 
-        let orderNumber;
+        // Safer order number generation — retry loop + catch duplicate key at DB level
+        let order;
         let attempts = 0;
         const maxAttempts = 5;
 
         while (attempts < maxAttempts) {
-            orderNumber = await Order.generateOrderNumber();
-            const exists = await Order.findOne({ orderNumber }).session(session);
-            
-            if (!exists) break;
-            
-            attempts++;
-            if (attempts === maxAttempts) {
-                await session.abortTransaction();
-                return res.status(500).json({
-                    success: false,
-                    message: 'Could not generate unique order number. Please try again.'
-                });
+            const orderNumber = await Order.generateOrderNumber();
+
+            try {
+                order = await Order.create([{
+                    orderNumber,
+                    user: req.user.id,
+                    orderItems,
+                    shippingAddress,
+                    payment: {
+                        method: paymentMethod,
+                        status: PAYMENT_STATUS.PENDING
+                    },
+                    pricing: {
+                        itemsPrice,
+                        taxPrice: taxPrice || 0,
+                        shippingPrice: shippingPrice || 100,
+                        discount: discount || 0,
+                        totalPrice
+                    },
+                    orderStatus: ORDER_STATUS.PENDING
+                }], { session });
+
+                break;
+            } catch (err) {
+                if (err.code === 11000 && err.keyPattern && err.keyPattern.orderNumber) {
+                    attempts++;
+                    if (attempts >= maxAttempts) {
+                        await session.abortTransaction();
+                        return res.status(500).json({
+                            success: false,
+                            message: 'Could not generate unique order number. Please try again.'
+                        });
+                    }
+                    continue;
+                }
+                throw err;
             }
         }
-
-        const paymentStatus = paymentMethod === 'COD' 
-            ? PAYMENT_STATUS.PENDING 
-            : PAYMENT_STATUS.PENDING;
-
-        const order = await Order.create([{
-            orderNumber,
-            user: req.user.id,
-            orderItems,
-            shippingAddress,
-            payment: {
-                method: paymentMethod,
-                status: paymentStatus
-            },
-            pricing: {
-                itemsPrice,
-                taxPrice: taxPrice || 0,
-                shippingPrice: shippingPrice || 100,
-                discount: discount || 0,
-                totalPrice
-            },
-            orderStatus: ORDER_STATUS.PENDING
-        }], { session });
 
         await Cart.findOneAndUpdate(
             { user: req.user.id },
@@ -144,8 +148,7 @@ exports.createOrder = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error creating order',
-            error: error.message,
-            stack: error.stack
+            error: error.message
         });
     } finally {
         session.endSession();
@@ -154,11 +157,9 @@ exports.createOrder = async (req, res) => {
 
 exports.getMyOrders = async (req, res) => {
     try {
-        const {
-            status,
-            page = 1,
-            limit = 10
-        } = req.query;
+        const { status } = req.query;
+        const page  = Math.max(1, parseInt(req.query.page,  10) || 1);
+        const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 10, 100));
 
         let query = { user: req.user.id };
         if (status) query.orderStatus = status;
@@ -166,8 +167,8 @@ exports.getMyOrders = async (req, res) => {
         const orders = await Order.find(query)
             .populate('orderItems.product', 'name slug images')
             .sort('-createdAt')
-            .limit(Number(limit))
-            .skip((Number(page) - 1) * Number(limit))
+            .limit(limit)
+            .skip((page - 1) * limit)
             .lean();
 
         const count = await Order.countDocuments(query);
@@ -177,7 +178,7 @@ exports.getMyOrders = async (req, res) => {
             count: orders.length,
             total: count,
             totalPages: Math.ceil(count / limit),
-            currentPage: Number(page),
+            currentPage: page,
             data: orders
         });
 
@@ -195,7 +196,7 @@ exports.getOrderById = async (req, res) => {
         const order = await Order.findById(req.params.id)
             .populate('user', 'name email phone')
             .populate('orderItems.product', 'name slug images brand')
-            .lean(); // ✅ Use lean()
+            .lean();
 
         if (!order) {
             return res.status(404).json({
@@ -238,15 +239,29 @@ exports.updateOrderToPaid = async (req, res) => {
             });
         }
 
-        order.payment.status = status === 'success' 
-            ? PAYMENT_STATUS.COMPLETED 
+        if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to update this order'
+            });
+        }
+
+        if (order.payment.status === PAYMENT_STATUS.COMPLETED) {
+            return res.status(400).json({
+                success: false,
+                message: 'Order has already been paid'
+            });
+        }
+
+        order.payment.status = status === 'success'
+            ? PAYMENT_STATUS.COMPLETED
             : PAYMENT_STATUS.FAILED;
-        
+
         if (status === 'success') {
-            order.payment.paidAt = Date.now();
+            order.payment.paidAt        = Date.now();
             order.payment.transactionId = transactionId;
-            order.payment.provider = provider;
-            order.orderStatus = ORDER_STATUS.PROCESSING;
+            order.payment.provider      = provider;
+            order.orderStatus           = ORDER_STATUS.PROCESSING;
         }
 
         const updatedOrder = await order.save();
@@ -266,140 +281,11 @@ exports.updateOrderToPaid = async (req, res) => {
     }
 };
 
-
-exports.cancelOrder = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-        const order = await Order.findById(req.params.id).session(session);
-
-        if (!order) {
-            await session.abortTransaction();
-            return res.status(404).json({
-                success: false,
-                message: 'Order not found'
-            });
-        }
-
-        // Check authorization
-        if (order.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            await session.abortTransaction();
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized to cancel this order'
-            });
-        }
-
-        if (![ORDER_STATUS.PENDING, ORDER_STATUS.PROCESSING].includes(order.orderStatus)) {
-            await session.abortTransaction();
-            return res.status(400).json({
-                success: false,
-                message: `Cannot cancel order with status: ${order.orderStatus}`
-            });
-        }
-
-        order.orderStatus = ORDER_STATUS.CANCELLED;
-        order.cancelledAt = Date.now();
-
-        for (let item of order.orderItems) {
-            await Product.findByIdAndUpdate(
-                item.product,
-                { $inc: { countInStock: item.quantity } },
-                { session }
-            );
-        }
-
-        if (order.payment.status === PAYMENT_STATUS.COMPLETED) {
-            order.payment.status = PAYMENT_STATUS.REFUNDED;
-            order.payment.refundedAt = Date.now();
-        }
-
-        await order.save({ session });
-        await session.commitTransaction();
-
-        res.status(200).json({
-            success: true,
-            message: 'Order cancelled successfully',
-            data: order
-        });
-
-    } catch (error) {
-        await session.abortTransaction();
-        res.status(500).json({
-            success: false,
-            message: 'Error cancelling order',
-            error: error.message
-        });
-    } finally {
-        session.endSession();
-    }
-};
-
-exports.requestReturn = async (req, res) => {
-    try {
-        const { reason } = req.body;
-
-        const order = await Order.findById(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: 'Order not found'
-            });
-        }
-
-        if (order.user.toString() !== req.user.id) {
-            return res.status(403).json({
-                success: false,
-                message: 'Not authorized'
-            });
-        }
-
-        if (order.orderStatus !== ORDER_STATUS.DELIVERED) {
-            return res.status(400).json({
-                success: false,
-                message: 'Can only return delivered orders'
-            });
-        }
-
-        // Check return window (7 days)
-        const daysSinceDelivery = Math.floor((Date.now() - order.deliveredAt) / (1000 * 60 * 60 * 24));
-        if (daysSinceDelivery > 7) {
-            return res.status(400).json({
-                success: false,
-                message: 'Return window expired. Returns allowed within 7 days of delivery'
-            });
-        }
-
-        order.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
-        order.returnRequestedAt = Date.now();
-
-        await order.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Return requested successfully',
-            data: order
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error requesting return',
-            error: error.message
-        });
-    }
-};
-
 exports.getAllOrders = async (req, res) => {
     try {
-        const {
-            status,
-            paymentStatus,
-            page = 1,
-            limit = 10
-        } = req.query;
+        const { status, paymentStatus } = req.query;
+        const page  = Math.max(1, parseInt(req.query.page,  10) || 1);
+        const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 10, 100));
 
         let query = {};
         if (status) query.orderStatus = status;
@@ -409,8 +295,8 @@ exports.getAllOrders = async (req, res) => {
             .populate('user', 'name email phone')
             .populate('orderItems.product', 'name slug')
             .sort('-createdAt')
-            .limit(Number(limit))
-            .skip((Number(page) - 1) * Number(limit))
+            .limit(limit)
+            .skip((page - 1) * limit)
             .lean();
 
         const count = await Order.countDocuments(query);
@@ -420,7 +306,7 @@ exports.getAllOrders = async (req, res) => {
             count: orders.length,
             total: count,
             totalPages: Math.ceil(count / limit),
-            currentPage: Number(page),
+            currentPage: page,
             data: orders
         });
 
@@ -467,25 +353,24 @@ exports.updateOrderStatus = async (req, res) => {
             });
         }
 
+        const allowedNext = VALID_TRANSITIONS[order.orderStatus] || [];
+        if (!allowedNext.includes(status)) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                success: false,
+                message: `Cannot transition order from '${order.orderStatus}' to '${status}'`
+            });
+        }
+
         order.orderStatus = status;
 
         if (status === ORDER_STATUS.DELIVERED) {
             order.deliveredAt = Date.now();
-        } else if (status === ORDER_STATUS.RETURNED) {
-            order.returnedAt = Date.now();
-            order.payment.status = PAYMENT_STATUS.REFUNDED;
-            order.payment.refundedAt = Date.now();
-            
-            for (let item of order.orderItems) {
-                await Product.findByIdAndUpdate(
-                    item.product,
-                    { $inc: { countInStock: item.quantity } },
-                    { session }
-                );
-            }
         }
 
-        await order.save({ session });
+        order.$session(session);
+        await order.save();
+
         await session.commitTransaction();
 
         res.status(200).json({
