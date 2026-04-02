@@ -1,14 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function GoogleAuthButton() {
     const navigate = useNavigate();
     const { googleLogin } = useAuth();
+    const initialized = useRef(false);
+
+    const handleCredentialResponse = async (response) => {
+        try {
+            await googleLogin(response.credential);
+            navigate('/');
+        } catch (error) {
+            console.error('Google login failed:', error);
+        }
+    };
 
     useEffect(() => {
+        if (initialized.current) return;
+
         const initGoogle = () => {
             if (!window.google) return;
+            initialized.current = true;
 
             window.google.accounts.id.initialize({
                 client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -36,17 +49,9 @@ export default function GoogleAuthButton() {
                     clearInterval(interval);
                 }
             }, 100);
+            return () => clearInterval(interval);
         }
     }, []);
-
-    const handleCredentialResponse = async (response) => {
-        try {
-            await googleLogin(response.credential);
-            navigate('/');
-        } catch (error) {
-            console.error('Google login failed:', error);
-        }
-    };
 
     return <div id="google-signin-btn" className="w-full" />;
 }

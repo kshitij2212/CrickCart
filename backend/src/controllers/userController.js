@@ -1,28 +1,27 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const generateToken = (id,role) => {
+const generateToken = (id, role) => {
     if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET not defined");
+        throw new Error("JWT_SECRET not defined");
     }
     return jwt.sign(
-        {id,role},
+        { id, role },
         process.env.JWT_SECRET,
-        {expiresIn: process.env.JWT_EXPIRE || '7d'}
-    )}
+        { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    );
+};
 
+exports.register = async (req, res) => {
+    try {
+        const { name, email, password, phone } = req.body;
 
-exports.register = async (req,res) => {
-    try{
-        const {name, email, password, phone} = req.body;
-        
-        if (!name || !email || !password || !phone){
+        if (!name || !email || !password || !phone) {
             return res.status(400).json({
-                success : false,
-                message : "All fields are required"
-            })
+                success: false,
+                message: "All fields are required"
+            });
         }
 
         const existingUser = await User.findOne({
@@ -36,71 +35,72 @@ exports.register = async (req,res) => {
             });
         }
 
-        const user = await User.create({
-            name,
-            email,
-            password,
-            phone
-        })
-
-        const token = generateToken(user._id,user.role);
+        const user = await User.create({ name, email, password, phone });
+        const token = generateToken(user._id, user.role);
 
         res.status(201).json({
             success: true,
-            message : "User registered successfully",
+            message: "User registered successfully",
             token,
-            user : {
-                id : user._id,
-                name : user.name,
-                email : user.email,
-                phone : user.phone,
-                role : user.role
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: user.role
             }
-        })}
-    catch (error) {
-    if (error.code === 11000) {
-        return res.status(400).json({
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: "Email or phone already exists"
+            });
+        }
+        res.status(500).json({
             success: false,
-            message: "Email or phone already exists"
+            message: "Error registering user",
+            error: error.message
         });
     }
+};
 
-    res.status(500).json({
-        success: false,
-        message: "Error registering user",
-        error: error.message
-    });
-}}
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-exports.login = async (req,res) => {
-    try{
-        const {email,password} = req.body;
-        if (!email || !password){
+        if (!email || !password) {
             return res.status(400).json({
-                success : false,
-                message : "All fields are required"
-            })
+                success: false,
+                message: "All fields are required"
+            });
         }
-        const user = await User.findOne({email}).select("+password");
+
+        const user = await User.findOne({ email }).select("+password");
+
         if (!user) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password"
             });
         }
-        if (!user.isActive){
+
+        if (!user.isActive) {
             return res.status(403).json({
                 success: false,
                 message: "User is not active"
             });
         }
+
         const isPasswordValid = await user.comparePassword(password);
+
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password"
             });
         }
+
         const token = generateToken(user._id, user.role);
 
         res.status(200).json({
@@ -115,59 +115,69 @@ exports.login = async (req,res) => {
                 role: user.role
             }
         });
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({
             success: false,
             message: "Error logging in",
             error: error.message
         });
-    }}
+    }
+};
 
-exports.getMe = async (req,res) => {
-    try{
+exports.getMe = async (req, res) => {
+    try {
         const user = await User.findById(req.user.id);
-        if (!user){
+
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             });
         }
+
         res.status(200).json({
             success: true,
             user
         });
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({
             success: false,
             message: "Error getting user",
             error: error.message
         });
-    }}
+    }
+};
 
-exports.logout = async (req,res) => {
-    try{
+exports.logout = async (req, res) => {
+    try {
         res.status(200).json({
             success: true,
             message: "Logout successful"
         });
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({
             success: false,
             message: "Error logging out",
             error: error.message
         });
-    }}
+    }
+};
 
 exports.googleAuth = async (req, res) => {
     try {
         const { credential } = req.body;
 
+        console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+        console.log('Credential received:', !!credential);
+
         if (!credential) {
-            return res.status(400).json({ success: false, message: 'Credential is required' });
+            return res.status(400).json({
+                success: false,
+                message: 'Credential is required'
+            });
         }
+
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
         const ticket = await client.verifyIdToken({
             idToken: credential,
@@ -209,6 +219,11 @@ exports.googleAuth = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(401).json({ success: false, message: 'Google auth failed', error: error.message });
+        console.error('Google auth error:', error.message);
+        res.status(401).json({
+            success: false,
+            message: 'Google auth failed',
+            error: error.message
+        });
     }
 };
