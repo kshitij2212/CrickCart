@@ -54,9 +54,7 @@ export const CartProvider = ({ children }) => {
     try {
       const { data } = await api.delete('/cart');
       setCart(data.data);
-      toast.success('Cart cleared');
     } catch (error) {
-      toast.error('Failed to clear cart');
       throw error;
     }
   };

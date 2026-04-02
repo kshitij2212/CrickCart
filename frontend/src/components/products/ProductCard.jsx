@@ -32,6 +32,7 @@ const ProductCard = ({ product }) => {
     }
     try {
       await addToCart(productId, 1);
+      toast.success('Added to cart!');
     } catch (error) {
       console.error('Add to cart error:', error);
     }
