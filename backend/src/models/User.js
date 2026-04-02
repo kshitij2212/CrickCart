@@ -41,9 +41,8 @@ const userSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: false,   // Google users ka phone nahi hoga
-        unique: true,
-        sparse: true,      // null values pe unique conflict nahi hoga
+        required: false,
+        sparse: true,
         trim: true,
         match: [/^[6-9]\d{9}$/, 'Please enter a valid phone number']
     },
