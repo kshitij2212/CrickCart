@@ -16,6 +16,7 @@ const cartRoutes = require("./routes/cartRoutes")
 const orderRoutes = require("./routes/orderRoutes")
 const wishlistRoutes = require("./routes/wishlistRoutes")
 const brandRoutes = require("./routes/brandRoutes")
+const addressRoutes = require("./routes/addressRoutes")
 
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/products", productRoutes);
@@ -24,6 +25,7 @@ app.use("/api/v1/cart", cartRoutes)
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/wishlist", wishlistRoutes);
 app.use("/api/v1/brands", brandRoutes);
+app.use("/api/v1/addresses", addressRoutes);
 
 app.get("/api/v1", (req, res) => {
   res.send("CrickCart is running...");
