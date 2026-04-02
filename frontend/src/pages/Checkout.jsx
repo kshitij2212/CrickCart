@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
@@ -6,6 +6,22 @@ import { Lock, Truck, Shield, CreditCard, ChevronRight, MapPin, Phone, User, Hom
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import orderService from '../services/orderService';
+
+const PAYMENT_METHOD_MAP = {
+  card: 'Card',
+  upi:  'UPI',
+  cod:  'COD',
+};
+
+const INDIAN_STATES = [
+  'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
+  'Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh',
+  'Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab',
+  'Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh',
+  'Uttarakhand','West Bengal','Andaman and Nicobar Islands','Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu','Delhi','Jammu and Kashmir',
+  'Ladakh','Lakshadweep','Puducherry',
+];
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -18,91 +34,146 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('card');
 
   const [shippingInfo, setShippingInfo] = useState({
-    name: user?.name || '',
-    street: '',
-    city: '',
-    state: '',
+    name:    user?.name || '',
+    street:  '',
+    city:    '',
+    state:   '',
     pincode: '',
-    phone: '',
+    phone:   '',
   });
 
   const [cardInfo, setCardInfo] = useState({
     cardNumber: '',
-    expiry: '',
-    cvv: '',
-    name: '',
+    expiry:     '',
+    cvv:        '',
+    name:       '',
   });
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  const [upiId, setUpiId] = useState('');
+  const initCart = useCallback(() => { fetchCart(); }, []);
+  useEffect(() => { initCart(); }, [initCart]);
 
   const shippingOptions = [
-    { id: 'standard', name: 'Standard Delivery', time: '3-5 Business Days', cost: 0, icon: Package },
-    { id: 'express', name: 'Express Shipping', time: '1-2 Business Days', cost: 150, icon: Truck },
-    { id: 'nextDay', name: 'Next Day Air', time: 'Guaranteed Tomorrow', cost: 250, icon: Truck },
+    { id: 'standard', name: 'Standard Delivery',  time: '3-5 Business Days',      cost: 0,   icon: Package },
+    { id: 'express',  name: 'Express Shipping',    time: '1-2 Business Days',      cost: 150, icon: Truck },
+    { id: 'nextDay',  name: 'Next Day Air',         time: 'Guaranteed Tomorrow',    cost: 250, icon: Truck },
   ];
 
-  const cartItems = cart?.items || [];
-
-  const subtotal = cartItems.reduce((sum, item) => {
-    const product = item.product || {};
-    const price = product.finalPrice || product.price || 0;
-  return Math.round(sum + price * item.quantity);
+  const cartItems  = cart?.items || [];
+  const subtotal   = cartItems.reduce((sum, item) => {
+    const price = item.product?.finalPrice || item.product?.price || 0;
+    return Math.round(sum + price * item.quantity);
   }, 0);
-
   const shippingCost = shippingOptions.find(opt => opt.id === shippingMethod)?.cost || 0;
-  const tax = Math.round(subtotal * 0.18);
-  const total = subtotal + shippingCost + tax;
+  const tax          = Math.round(subtotal * 0.18);
+  const total        = subtotal + shippingCost + tax;
 
-  const handlePlaceOrder = () => {
-    if (!shippingInfo.name || !shippingInfo.street || !shippingInfo.city || !shippingInfo.pincode || !shippingInfo.phone) {
+  const handleCardNumber = (e) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+    const formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+    setCardInfo(prev => ({ ...prev, cardNumber: formatted }));
+  };
+
+  const handleExpiry = (e) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+    const formatted = raw.length > 2 ? `${raw.slice(0, 2)}/${raw.slice(2)}` : raw;
+    setCardInfo(prev => ({ ...prev, expiry: formatted }));
+  };
+
+  const handlePhone = (e) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setShippingInfo(prev => ({ ...prev, phone: raw }));
+  };
+
+  const handlePincode = (e) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setShippingInfo(prev => ({ ...prev, pincode: raw }));
+  };
+
+  const validate = () => {
+    const { name, street, city, state, pincode, phone } = shippingInfo;
+
+    if (!name.trim() || !street.trim() || !city.trim() || !state || !pincode || !phone) {
       toast.error('Please fill all shipping details');
-      return;
+      return false;
     }
-    if (paymentMethod === 'card' && (!cardInfo.cardNumber || !cardInfo.expiry || !cardInfo.cvv || !cardInfo.name)) {
-      toast.error('Please fill all payment details');
-      return;
+    if (!/^[1-9][0-9]{5}$/.test(pincode)) {
+      toast.error('Please enter a valid 6-digit pincode');
+      return false;
+    }
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      toast.error('Please enter a valid 10-digit mobile number');
+      return false;
+    }
+    if (paymentMethod === 'card') {
+      if (!cardInfo.name.trim() || !cardInfo.cardNumber || !cardInfo.expiry || !cardInfo.cvv) {
+        toast.error('Please fill all card details');
+        return false;
+      }
+      if (cardInfo.cardNumber.replace(/\s/g, '').length < 16) {
+        toast.error('Please enter a valid 16-digit card number');
+        return false;
+      }
+      if (!/^\d{2}\/\d{2}$/.test(cardInfo.expiry)) {
+        toast.error('Please enter expiry in MM/YY format');
+        return false;
+      }
+      if (cardInfo.cvv.length < 3) {
+        toast.error('Please enter a valid CVV');
+        return false;
+      }
+    }
+    if (paymentMethod === 'upi') {
+      if (!upiId.trim() || !upiId.includes('@')) {
+        toast.error('Please enter a valid UPI ID (e.g. name@paytm)');
+        return false;
+      }
     }
     if (cartItems.length === 0) {
       toast.error('Your cart is empty');
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handlePlaceOrder = () => {
+    if (!validate()) return;
     setShowPaymentModal(true);
   };
 
-const handlePaymentConfirm = async () => {
+  const handlePaymentConfirm = async () => {
     setPaymentProcessing(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const orderData = {
         orderItems: cartItems.map(item => ({
-          product: item.product.id || item.product._id,
-          name: item.product.name,
+          product:  item.product.id || item.product._id,
+          name:     item.product.name,
           quantity: item.quantity,
-          price: item.product.finalPrice || item.product.price,
-          image: item.product.images?.[0] || '',
+          price:    item.product.finalPrice || item.product.price,
+          image:    item.product.images?.[0] || '',
         })),
         shippingAddress: {
-          name: shippingInfo.name,
-          street: shippingInfo.street,
-          city: shippingInfo.city,
-          state: shippingInfo.state,
+          name:    shippingInfo.name,
+          street:  shippingInfo.street,
+          city:    shippingInfo.city,
+          state:   shippingInfo.state,
           pincode: shippingInfo.pincode,
-          phone: shippingInfo.phone,
+          phone:   shippingInfo.phone,
         },
-        paymentMethod: paymentMethod.toUpperCase(),
-        itemsPrice: subtotal,
-        taxPrice: tax,
+        paymentMethod: PAYMENT_METHOD_MAP[paymentMethod],
+        itemsPrice:    subtotal,
+        taxPrice:      tax,
         shippingPrice: shippingCost,
-        totalPrice: total,
+        discount:      0,
+        totalPrice:    total,
       };
 
-      console.log('📦 Order payload:', JSON.stringify(orderData, null, 2)); // ADD THIS
-
       await orderService.createOrder(orderData);
+
       await clearCart();
+
       toast.success('Order placed successfully! 🎉');
       navigate('/orders');
     } catch (error) {
@@ -149,6 +220,7 @@ const handlePaymentConfirm = async () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
             <button onClick={() => navigate('/')} className="hover:text-[#00a8e8] transition">Home</button>
@@ -165,8 +237,8 @@ const handlePaymentConfirm = async () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-
           <div className="lg:w-2/3 space-y-6">
+
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -184,54 +256,79 @@ const handlePaymentConfirm = async () => {
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">
                     <User className="w-3 h-3 inline mr-1" /> FULL NAME *
                   </label>
-                  <input type="text" value={shippingInfo.name}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, name: e.target.value })}
+                  <input
+                    type="text"
+                    value={shippingInfo.name}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="Virat Kohli" />
+                    placeholder="Virat Kohli"
+                  />
                 </div>
 
                 <div className="col-span-full">
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">
                     <Home className="w-3 h-3 inline mr-1" /> ADDRESS *
                   </label>
-                  <input type="text" value={shippingInfo.address}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, street: e.target.value })}
+                  <input
+                    type="text"
+                    value={shippingInfo.street}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, street: e.target.value }))}
                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="123 Cricket Stadium Road" />
+                    placeholder="123 Cricket Stadium Road"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CITY *</label>
-                  <input type="text" value={shippingInfo.city}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, city: e.target.value })}
+                  <input
+                    type="text"
+                    value={shippingInfo.city}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, city: e.target.value }))}
                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="Mumbai" />
+                    placeholder="Mumbai"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">STATE *</label>
-                  <input type="text" value={shippingInfo.state}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, state: e.target.value })}
-                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="Maharashtra" />
+                  <select
+                    value={shippingInfo.state}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, state: e.target.value }))}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition text-slate-700"
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">PIN CODE *</label>
-                  <input type="text" value={shippingInfo.pincode}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, pincode: e.target.value })}
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={shippingInfo.pincode}
+                    onChange={handlePincode}
                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="400001" maxLength="6" />
+                    placeholder="400001"
+                    maxLength="6"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">
                     <Phone className="w-3 h-3 inline mr-1" /> PHONE NUMBER *
                   </label>
-                  <input type="tel" value={shippingInfo.phone}
-                    onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    value={shippingInfo.phone}
+                    onChange={handlePhone}
                     className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="+91 98765 43210" maxLength="10" />
+                    placeholder="9876543210"
+                    maxLength="10"
+                  />
                 </div>
               </div>
             </motion.section>
@@ -253,7 +350,8 @@ const handlePaymentConfirm = async () => {
                 {shippingOptions.map((option) => {
                   const Icon = option.icon;
                   return (
-                    <label key={option.id}
+                    <label
+                      key={option.id}
                       className={`flex items-center justify-between p-5 cursor-pointer rounded-xl transition-all border-2 ${
                         shippingMethod === option.id
                           ? 'border-[#00a8e8] bg-[#00a8e8]/5 shadow-md'
@@ -275,13 +373,19 @@ const handlePaymentConfirm = async () => {
                       <span className={`font-black text-lg ${shippingMethod === option.id ? 'text-[#00a8e8]' : 'text-slate-700'}`}>
                         {option.cost === 0 ? 'FREE' : `₹${option.cost}`}
                       </span>
-                      <input type="radio" name="shipping" checked={shippingMethod === option.id}
-                        onChange={() => setShippingMethod(option.id)} className="hidden" />
+                      <input
+                        type="radio"
+                        name="shipping"
+                        checked={shippingMethod === option.id}
+                        onChange={() => setShippingMethod(option.id)}
+                        className="hidden"
+                      />
                     </label>
                   );
                 })}
               </div>
             </motion.section>
+
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -298,10 +402,12 @@ const handlePaymentConfirm = async () => {
               <div className="flex gap-2 mb-6 bg-slate-100 p-2 rounded-xl">
                 {[
                   { id: 'card', label: 'Credit/Debit Card', icon: CreditCard },
-                  { id: 'upi', label: 'UPI', icon: Phone },
-                  { id: 'cod', label: 'Cash on Delivery', icon: Package },
+                  { id: 'upi',  label: 'UPI',               icon: Phone },
+                  { id: 'cod',  label: 'Cash on Delivery',  icon: Package },
                 ].map(({ id, label, icon: Icon }) => (
-                  <button key={id} onClick={() => setPaymentMethod(id)}
+                  <button
+                    key={id}
+                    onClick={() => setPaymentMethod(id)}
                     className={`flex-1 py-3 px-4 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                       paymentMethod === id ? 'bg-[#00a8e8] text-white shadow-md' : 'text-slate-600 hover:bg-white'
                     }`}
@@ -313,56 +419,84 @@ const handlePaymentConfirm = async () => {
               </div>
 
               {paymentMethod === 'card' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   className="grid grid-cols-2 gap-4 p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200"
                 >
                   <div className="col-span-full">
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CARDHOLDER NAME</label>
-                    <input type="text" value={cardInfo.name}
-                      onChange={(e) => setCardInfo({ ...cardInfo, name: e.target.value })}
+                    <input
+                      type="text"
+                      value={cardInfo.name}
+                      onChange={(e) => setCardInfo(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                      placeholder="VIRAT KOHLI" />
+                      placeholder="VIRAT KOHLI"
+                    />
                   </div>
                   <div className="col-span-full">
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CARD NUMBER</label>
                     <div className="relative">
-                      <input type="text" value={cardInfo.cardNumber}
-                        onChange={(e) => setCardInfo({ ...cardInfo, cardNumber: e.target.value })}
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={cardInfo.cardNumber}
+                        onChange={handleCardNumber}
                         className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition pr-12"
-                        placeholder="1234 5678 9012 3456" maxLength="19" />
+                        placeholder="1234 5678 9012 3456"
+                        maxLength="19"
+                      />
                       <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 text-[#00a8e8] w-6 h-6" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">EXPIRY DATE</label>
-                    <input type="text" value={cardInfo.expiry}
-                      onChange={(e) => setCardInfo({ ...cardInfo, expiry: e.target.value })}
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={cardInfo.expiry}
+                      onChange={handleExpiry}
                       className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                      placeholder="MM/YY" maxLength="5" />
+                      placeholder="MM/YY"
+                      maxLength="5"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CVV</label>
-                    <input type="password" value={cardInfo.cvv}
-                      onChange={(e) => setCardInfo({ ...cardInfo, cvv: e.target.value })}
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      value={cardInfo.cvv}
+                      onChange={(e) => setCardInfo(prev => ({ ...prev, cvv: e.target.value.replace(/\D/g, '').slice(0, 3) }))}
                       className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                      placeholder="•••" maxLength="3" />
+                      placeholder="•••"
+                      maxLength="3"
+                    />
                   </div>
                 </motion.div>
               )}
 
               {paymentMethod === 'upi' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200"
                 >
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">UPI ID</label>
-                  <input type="text"
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
                     className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                    placeholder="yourname@paytm" />
+                    placeholder="yourname@paytm"
+                  />
                 </motion.div>
               )}
 
               {paymentMethod === 'cod' && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   className="p-6 bg-gradient-to-br from-[#00a8e8]/10 to-[#00a8e8]/5 rounded-xl border-2 border-[#00a8e8]/20"
                 >
                   <div className="flex items-start gap-3">
@@ -393,13 +527,16 @@ const handlePaymentConfirm = async () => {
 
                 <div className="space-y-4 mb-6 max-h-72 overflow-y-auto pr-2">
                   {cartItems.map((item) => {
-                    const product = item.product || {};
+                    const product    = item.product || {};
                     const finalPrice = product.finalPrice || product.price || 0;
+                    const imgSrc     = product.images?.[0] || null;
                     return (
                       <div key={item._id} className="flex gap-3 pb-4 border-b border-slate-100">
-                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                          <img src={product.images?.[0]} alt={product.name || 'Product'}
-                            className="w-full h-full object-cover" />
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 flex items-center justify-center">
+                          {imgSrc
+                            ? <img src={imgSrc} alt={product.name || 'Product'} className="w-full h-full object-cover" />
+                            : <Package className="w-8 h-8 text-slate-300" />
+                          }
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-black text-sm uppercase line-clamp-2 text-[#00171f]">
@@ -441,7 +578,8 @@ const handlePaymentConfirm = async () => {
                   <span className="text-5xl font-black text-[#00a8e8] tracking-tight">₹{total}</span>
                 </div>
 
-                <button onClick={handlePlaceOrder}
+                <button
+                  onClick={handlePlaceOrder}
                   className="w-full bg-gradient-to-r from-[#00a8e8] to-[#0095d1] text-white py-5 rounded-xl font-black italic uppercase text-lg shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3"
                 >
                   <Lock className="w-5 h-5" />
@@ -451,9 +589,9 @@ const handlePaymentConfirm = async () => {
 
                 <div className="mt-8 grid grid-cols-3 gap-4">
                   {[
-                    { icon: Lock, label: 'SSL Secured' },
+                    { icon: Lock,   label: 'SSL Secured' },
                     { icon: Shield, label: 'Verified' },
-                    { icon: Truck, label: 'Fast Delivery' },
+                    { icon: Truck,  label: 'Fast Delivery' },
                   ].map(({ icon: Icon, label }) => (
                     <div key={label} className="flex flex-col items-center text-slate-400 hover:text-[#00a8e8] transition">
                       <Icon className="w-6 h-6 mb-2" />
@@ -496,13 +634,14 @@ const handlePaymentConfirm = async () => {
             </div>
 
             <div className="space-y-3 mb-6 text-sm text-gray-500">
-              <div className="flex justify-between">
-                <span>Order ID</span>
-                <span className="font-bold text-[#00171f]">ORD-{Date.now().toString().slice(-6)}</span>
-              </div>
+              {/* FIX: removed fake order ID — real ID is assigned by backend after creation */}
               <div className="flex justify-between">
                 <span>Payment Mode</span>
-                <span className="font-bold text-[#00171f] uppercase">{paymentMethod}</span>
+                <span className="font-bold text-[#00171f] uppercase">{PAYMENT_METHOD_MAP[paymentMethod]}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Items</span>
+                <span className="font-bold text-[#00171f]">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</span>
               </div>
               <div className="flex justify-between">
                 <span>Status</span>
@@ -511,12 +650,16 @@ const handlePaymentConfirm = async () => {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setShowPaymentModal(false)} disabled={paymentProcessing}
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                disabled={paymentProcessing}
                 className="flex-1 py-3 border-2 border-gray-200 rounded-xl font-black italic text-gray-600 hover:bg-gray-50 transition disabled:opacity-50"
               >
                 CANCEL
               </button>
-              <button onClick={handlePaymentConfirm} disabled={paymentProcessing}
+              <button
+                onClick={handlePaymentConfirm}
+                disabled={paymentProcessing}
                 className="flex-1 py-3 bg-[#00a8e8] text-white rounded-xl font-black italic hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {paymentProcessing ? (
