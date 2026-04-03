@@ -22,7 +22,7 @@ export const authService = {
   },
 
   updateProfile: async (userData) => {
-    const { data } = await api.put('/users/updateprofile', userData);
+    const { data } = await api.put('/users/profile', userData);
     return data;
   },
 
