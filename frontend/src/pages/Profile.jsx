@@ -19,7 +19,7 @@ const INDIAN_STATES = [
 const EMPTY_FORM = { name: '', phone: '', street: '', city: '', state: '', pincode: '', isDefault: false };
 
 const Profile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
@@ -59,9 +59,13 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) { toast.error('Name cannot be empty'); return; }
+    if (formData.phone && !/^[6-9]\d{9}$/.test(formData.phone)) {
+      toast.error('Phone number is invalid'); return;
+    }
     setUpdating(true);
     try {
       await authService.updateProfile({ name: formData.name, phone: formData.phone });
+      updateUser({ name: formData.name, phone: formData.phone });
       toast.success('Profile updated successfully!');
       setEditing(false);
     } catch (err) {
@@ -381,9 +385,10 @@ const Profile = () => {
                       </div>
                       <div>
                         <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">PHONE</label>
-                        <input type="tel" value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition" />
+                        <input type="tel" inputMode="numeric" value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold transition"
+                          maxLength="10" placeholder="9876543210" />
                       </div>
                       <button type="submit"
                         disabled={updating} className="flex items-center gap-2 px-6 py-3 bg-[#00a8e8] text-white font-black rounded-lg hover:bg-[#0095d1] transition disabled:opacity-50">
