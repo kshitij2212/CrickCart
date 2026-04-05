@@ -25,15 +25,12 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, type = 'dan
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       ></div>
 
-      {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-2xl max-w-md w-full animate-scale-up">
-        {/* Header */}
         <div className={`${styles.bg} p-6 rounded-t-lg`}>
           <div className="flex items-center gap-4">
             <div className={`${styles.icon} p-3 bg-white rounded-full`}>
@@ -53,14 +50,12 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, type = 'dan
           </div>
         </div>
 
-        {/* Body */}
         <div className="p-6">
           <p className="text-gray-700 leading-relaxed">
             {message || 'Are you sure you want to proceed? This action cannot be undone.'}
           </p>
         </div>
 
-        {/* Footer */}
         <div className="p-6 pt-0 flex gap-3">
           <button
             onClick={onClose}

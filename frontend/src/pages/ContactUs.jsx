@@ -123,7 +123,6 @@ const ContactUs = () => {
                 <span className="text-[#00a8e8]">US</span>
               </h1>
 
-              {/* Trust badges */}
               <div className="flex flex-wrap items-center gap-3 mt-8">
                 <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2">
                   <Clock className="w-3.5 h-3.5 text-[#00a8e8]" />

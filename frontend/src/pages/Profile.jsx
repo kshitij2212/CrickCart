@@ -25,7 +25,6 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
 
-  // ── Address state ──────────────────────────────────────────────────────────
   const [addresses, setAddresses]       = useState([]);
   const [addrLoading, setAddrLoading]   = useState(false);
   const [showAddrForm, setShowAddrForm] = useState(false);
@@ -37,7 +36,6 @@ const Profile = () => {
     if (user) setFormData({ name: user.name || '', email: user.email || '', phone: user.phone || '' });
   }, [user]);
 
-  // Load addresses when tab becomes active
   useEffect(() => {
     if (activeTab !== 'addresses') return;
     const load = async () => {
@@ -77,7 +75,6 @@ const Profile = () => {
 
   const handleLogout = () => { logout(); navigate('/'); };
 
-  // ── Address handlers ───────────────────────────────────────────────────────
   const handleSaveAddress = async () => {
     const { name, phone, street, city, state, pincode } = addrForm;
     if (!name.trim() || !phone || !street.trim() || !city.trim() || !state || !pincode) {
@@ -130,7 +127,6 @@ const Profile = () => {
 
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?';
 
-  // ── Addresses panel ────────────────────────────────────────────────────────
   const renderAddresses = () => (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -155,7 +151,6 @@ const Profile = () => {
           </div>
         ) : (
           <>
-            {/* Saved address cards */}
             {addresses.length > 0 && (
               <div className="space-y-3 mb-6">
                 {addresses.map((addr) => (
@@ -196,7 +191,6 @@ const Profile = () => {
               </div>
             )}
 
-            {/* New address form */}
             {showAddrForm && (
               <div className={addresses.length > 0 ? 'border-t-2 border-slate-100 pt-6' : ''}>
                 {addresses.length > 0 && (
@@ -275,7 +269,6 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Empty state */}
             {addresses.length === 0 && !showAddrForm && (
               <div className="text-center py-10">
                 <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -305,8 +298,6 @@ const Profile = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* Sidebar */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-6 border-b border-gray-100">
@@ -346,7 +337,6 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Right panel */}
           <div className="md:col-span-2">
             {activeTab === 'addresses' ? renderAddresses() : (
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">

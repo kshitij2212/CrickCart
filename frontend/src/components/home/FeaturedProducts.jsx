@@ -8,17 +8,6 @@ import productService from '../../services/productService';
 import { Link } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
-const PLACEHOLDER_PRODUCTS = [
-  { id: 1, name: 'Cricket Bat', price: 1299, image: 'https://images.unsplash.com/photo-1624880357913-a8539238245b?w=300&h=400&fit=crop', badge: 'PRO' },
-  { id: 2, name: 'Cricket Ball', price: 399,  image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=300&h=400&fit=crop', badge: 'NEW' },
-  { id: 3, name: 'Cricket Helmet', price: 2499, image: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=300&h=400&fit=crop', badge: 'SAFE' },
-  { id: 4, name: 'Cricket Gloves', price: 799, image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=300&h=400&fit=crop', badge: 'HOT' },
-  { id: 5, name: 'Cricket Jersey', price: 899, image: 'https://images.unsplash.com/photo-1562077981-4d7eafd44932?w=300&h=400&fit=crop', badge: 'ELITE' },
-  { id: 6, name: 'Cricket Shoes', price: 1799, image: 'https://images.unsplash.com/photo-1593341646782-e0b495cff86d?w=300&h=400&fit=crop', badge: 'GRIP' },
-  { id: 7, name: 'Cricket Pads', price: 1099, image: 'https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?w=300&h=400&fit=crop', badge: 'PRO' },
-  { id: 8, name: 'Cricket Bag', price: 2199, image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=400&fit=crop', badge: 'CARRY' },
-];
-
   const CarouselItem = ({ product, index }) => {
   const [hovered, setHovered] = useState(false);
   const productId = product.id;
@@ -85,7 +74,7 @@ const SkeletonGrid = () => (
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState('carousel'); // 'grid' | 'carousel'
+  const [mode, setMode] = useState('carousel');
   const [activeIndex, setActiveIndex] = useState(0);
 
   const carouselRef = useRef(null);
@@ -95,9 +84,9 @@ const FeaturedProducts = () => {
     const fetchProducts = async () => {
       try {
         const data = await productService.getFeaturedProducts();
-        setProducts(data.data?.length ? data.data : PLACEHOLDER_PRODUCTS);
+        setProducts(data.data || []);
       } catch {
-        setProducts(PLACEHOLDER_PRODUCTS);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -211,7 +200,7 @@ const FeaturedProducts = () => {
       </div>
 
       {loading && <SkeletonGrid />}
-      {!loading && mode === 'grid' && (
+      {!loading && products.length > 0 && mode === 'grid' && (
         <AnimatePresence mode="wait">
           <motion.div
             key={page}
@@ -235,7 +224,7 @@ const FeaturedProducts = () => {
         </AnimatePresence>
       )}
 
-      {!loading && mode === 'carousel' && (
+      {!loading && products.length > 0 && mode === 'carousel' && (
         <div>
           <motion.p
             initial={{ opacity: 0 }}

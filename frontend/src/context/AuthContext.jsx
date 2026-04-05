@@ -66,7 +66,6 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully');
   };
 
-  // ✅ Profile update ke baad state + localStorage dono sync karo
   const updateUser = (updatedUser) => {
     const merged = { ...user, ...updatedUser };
     localStorage.setItem('user', JSON.stringify(merged));

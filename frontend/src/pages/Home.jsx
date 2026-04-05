@@ -1,5 +1,6 @@
 import CategorySection from '../components/home/CategorySection';
 import FeaturedProducts from '../components/home/FeaturedProducts';
+import BrandsCarousel from '../components/home/BrandsCarousel';
 import Newsletter from '../components/home/Newsletter';
 import { Link } from "react-router-dom";
 
@@ -46,6 +47,7 @@ export default function Home() {
 
       <CategorySection />
       <FeaturedProducts />
+      <BrandsCarousel />
       <Newsletter />
     </main>
   );

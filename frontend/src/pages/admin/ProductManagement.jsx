@@ -138,10 +138,9 @@ const ProductManagement = () => {
                   <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <img
-                        src={product.images?.[0] || 'https://placehold.co/50x50?text=No+Image'}
+                        src={product.images?.[0]}
                         alt={product.name}
                         className="w-12 h-12 object-cover rounded"
-                        onError={(e) => { e.target.src = 'https://placehold.co/50x50?text=No+Image'; }}
                       />
                     </td>
                     <td className="py-4 px-6 font-medium">{product.name}</td>

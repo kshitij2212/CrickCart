@@ -1,4 +1,3 @@
-// Format price to Indian Rupees
 export const formatPrice = (price) => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',

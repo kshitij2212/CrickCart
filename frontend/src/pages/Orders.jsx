@@ -215,12 +215,9 @@ const Orders = () => {
                       <div key={item._id} className="relative group">
                         <div className="aspect-square rounded-lg overflow-hidden bg-slate-100 border-2 border-slate-200 group-hover:border-[#00a8e8] transition">
                           <img
-                            src={item.product?.images?.[0] || 'https://via.placeholder.com/200'}
+                            src={item.product?.images?.[0]}
                             alt={item.product?.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/200?text=No+Image';
-                            }}
                           />
                         </div>
                         <div className="absolute top-2 right-2 bg-[#00a8e8] text-white text-xs font-black px-2 py-1 rounded-lg">

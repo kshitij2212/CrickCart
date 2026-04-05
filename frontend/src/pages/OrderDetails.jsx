@@ -91,7 +91,7 @@ const OrderDetails = () => {
                     <div key={item._id} className="flex gap-4 pb-4 border-b border-slate-200 last:border-0">
                       <div className="w-24 h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                         <img
-                          src={product.images?.[0] || 'https://via.placeholder.com/100'}
+                          src={product.images?.[0]}
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />

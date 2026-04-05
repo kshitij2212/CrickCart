@@ -219,8 +219,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-
-          {/* Name */}
           <div>
             <label className="block text-xs font-black tracking-widest text-gray-500 mb-2">PRODUCT NAME *</label>
             <input
@@ -394,7 +392,6 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
                       src={img}
                       alt={`Preview ${index + 1}`}
                       className="w-full h-24 object-cover rounded border"
-                      onError={(e) => { e.target.src = 'https://placehold.co/100x100?text=No+Image'; }}
                     />
                     <button
                       type="button"

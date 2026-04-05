@@ -15,9 +15,10 @@ const ProductDetails = () => {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const { toggleWishlist, isWishlisted: checkIsWishlisted, isToggling } = useWishlist();
-
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -59,6 +60,7 @@ const ProductDetails = () => {
       navigate('/login');
       return;
     }
+    setAddingToCart(true);
     try {
       const res = await addToCart(product.id, quantity);
       if (res?.success) {
@@ -68,6 +70,8 @@ const ProductDetails = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add to cart');
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -77,11 +81,16 @@ const ProductDetails = () => {
       navigate('/login');
       return;
     }
-    const res = await addToCart(product.id, quantity);
-    if (res?.success) {
-      navigate('/checkout');
-    } else {
-      toast.error(res?.message || 'Cannot proceed to checkout');
+    setBuyingNow(true);
+    try {
+      const res = await addToCart(product.id, quantity);
+      if (res?.success) {
+        navigate('/checkout');
+      } else {
+        toast.error(res?.message || 'Cannot proceed to checkout');
+      }
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -132,7 +141,7 @@ const ProductDetails = () => {
   if (!product) return null;
 
   return (
-    <div className="diagonal-bg min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-white to-[#e6f6ff] dark:from-[#0f172a] dark:via-[#020617] dark:to-[#00171f]">
       <nav className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 pt-8 pb-4">
         <div className="flex items-center space-x-2 text-xs uppercase tracking-widest font-bold font-athletic italic text-gray-600">
           <Link to="/" className="hover:text-[#00a8e8] transition">SHOP</Link>
@@ -148,14 +157,13 @@ const ProductDetails = () => {
       <main className="max-w-7xl mx-auto px-4 md:px-12 lg:px-24 pb-20">
         <div className="flex flex-col lg:flex-row gap-12 items-start">
 
-          {/* Left: Gallery */}
           <motion.section
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             className="w-full lg:w-[60%] space-y-6"
           >
-            <div className="relative aspect-[3/3] bg-slate-50 rounded-xl overflow-hidden mesh-texture group border border-slate-100">
+            <div className="relative aspect-[3/3] bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl overflow-hidden group border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-500">
               {product.isFeatured && (
                 <div className="absolute top-6 left-6 z-10 bg-[#00a8e8] text-white font-athletic font-black italic px-4 py-1 transform -skew-x-12 shadow-lg">
                   <span className="inline-block transform skew-x-12 uppercase tracking-tighter">NEW RELEASE</span>
@@ -168,9 +176,8 @@ const ProductDetails = () => {
                 </div>
               )}
 
-              {/* Out of Stock Overlay */}
               {isOutOfStock && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
                   <span className="bg-white text-[#00171f] font-black italic text-xl px-6 py-2 transform -skew-x-12">
                     <span className="inline-block skew-x-12">OUT OF STOCK</span>
                   </span>
@@ -179,30 +186,29 @@ const ProductDetails = () => {
 
               <img
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className={`w-full h-full object-contain p-4 transition-all duration-700 ${!isOutOfStock ? 'group-hover:scale-110 group-hover:rotate-[1deg]' : ''}`}
                 src={product.images?.[selectedImage]}
               />
               <div className="absolute inset-0 pointer-events-none opacity-10 bg-gradient-to-tr from-[#00a8e8]/10 to-transparent"></div>
             </div>
 
-            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+            <div className="flex gap-4 overflow-x-auto">
               {product.images?.map((image, index) => (
                 <div
                   key={`thumb-${index}`}
                   onClick={() => setSelectedImage(index)}
-                  className={`flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden cursor-pointer transition-all ${
+                  className={`flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border ${
                     selectedImage === index
-                      ? 'border-2 border-[#00a8e8] shadow-lg'
-                      : 'border border-slate-100 opacity-60 hover:opacity-100'
+                      ? 'border-[#00a8e8] shadow-md'
+                      : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img className="w-full h-full object-cover" src={image} alt={`${product.name} view ${index + 1}`} />
+                  <img className="w-full h-full object-contain p-4" src={image} alt={`${product.name} view ${index + 1}`} />
                 </div>
               ))}
             </div>
           </motion.section>
 
-          {/* Right: Info */}
           <motion.section
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -221,8 +227,7 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Price Card */}
-            <div className="p-6 bg-white rounded-2xl border-l-4 border-[#00a8e8] shadow-lg relative">
+            <div className="p-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl">
               <div className="flex flex-col space-y-1">
                 {product.discount > 0 && (
                   <span className="text-sm text-gray-600 line-through decoration-[#ef4444] decoration-2">
@@ -230,7 +235,7 @@ const ProductDetails = () => {
                   </span>
                 )}
                 <div className="flex items-baseline space-x-4">
-                  <span className="text-4xl md:text-5xl font-athletic font-black italic text-[#00171f]">
+                  <span className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white">
                     ₹{Math.round(product.finalPrice || product.price)}
                   </span>
                   {product.discount > 0 && (
@@ -271,9 +276,8 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Quantity & Wishlist */}
             <div className="flex items-center space-x-6">
-              <div className={`flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1 ${isOutOfStock ? 'opacity-40' : ''}`}>
+              <div className={`flex items-center rounded-2xl border border-slate-200 bg-white shadow-sm p-1 ${isOutOfStock ? 'opacity-40' : ''}`}>
                 <button
                   onClick={decrementQuantity}
                   disabled={isOutOfStock}
@@ -296,7 +300,7 @@ const ProductDetails = () => {
               <button
                 onClick={handleWishlist}
                 disabled={isToggling(product.id)}
-                className="w-10 h-10 bg-white rounded-full shadow flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                className="w-11 h-11 bg-white/80 backdrop-blur rounded-full shadow-md hover:scale-110 transition-all flex items-center justify-center text-slate-400 hover:text-red-500 disabled:opacity-50"
               >
                 {isToggling(product.id) ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400" />
@@ -309,30 +313,32 @@ const ProductDetails = () => {
             <div className="grid grid-cols-1 gap-4">
               <button
                 onClick={handleAddToCart}
-                disabled={isOutOfStock}
-                className={`group text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg transition-all active:scale-[0.98] disabled:cursor-not-allowed ${
-                  isOutOfStock ? 'bg-gray-400' : 'bg-[#00a8e8] hover:brightness-110'
+                disabled={isOutOfStock || addingToCart}
+                className={`w-full py-4 rounded-2xl font-black italic font-athletic text-white text-lg flex items-center justify-center gap-2 transition-all duration-300 shadow-lg disabled:cursor-not-allowed ${
+                  isOutOfStock ? 'bg-gray-400' : 'bg-[#00a8e8] hover:brightness-110 hover:scale-[1.03] hover:shadow-xl'
                 }`}
               >
-                <div className="transform skew-x-12 flex items-center justify-center space-x-2">
-                  <ShoppingCart className="w-5 h-5" />
-                  <span>{isOutOfStock ? 'OUT OF STOCK' : 'ADD TO CART'}</span>
-                </div>
+              {addingToCart
+                ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>ADDING...</span></>
+                : <><ShoppingCart className="w-5 h-5 flex-shrink-0" /><span>{isOutOfStock ? 'OUT OF STOCK' : 'ADD TO CART'}</span></>
+              }
               </button>
 
               <div className="relative group">
-                <div className="absolute inset-0 speed-lines opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+                <div className="absolute inset-0 speed-lines opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none"></div>
                 <button
                   onClick={handleBuyNow}
                   disabled={isOutOfStock}
-                  className={`w-full text-white font-athletic font-black italic text-xl py-4 transform -skew-x-12 shadow-lg transition-all active:scale-[0.98] relative z-10 disabled:cursor-not-allowed ${
-                    isOutOfStock ? 'bg-gray-400' : 'bg-[#00171f] hover:brightness-110'
+                  className={`w-full py-4 rounded-2xl font-black italic font-athletic text-white flex items-center justify-center gap-2 transition-all duration-300 shadow-md active:scale-[0.97] ${
+                    isOutOfStock
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-[#00171f] hover:scale-[1.03] hover:shadow-xl'
                   }`}
                 >
-                  <div className="transform skew-x-12 flex items-center justify-center space-x-2">
-                    <span className="text-2xl">⚡</span>
-                    <span>{isOutOfStock ? 'UNAVAILABLE' : 'BUY NOW'}</span>
-                  </div>
+                  {buyingNow
+                    ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>PROCESSING...</span></>
+                    : <>{!isOutOfStock && <span className="text-lg leading-none">⚡</span>}<span>{isOutOfStock ? 'UNAVAILABLE' : 'BUY NOW'}</span></>
+                  }
                 </button>
               </div>
             </div>
@@ -366,7 +372,7 @@ const ProductDetails = () => {
             </button>
           </div>
 
-          <div className="mt-8 bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+          <div className="mt-8 bg-white/70 backdrop-blur-xl rounded-3xl border border-white/20 shadow-lg p-8">
             {activeTab === 'description' ? (
               <div>
                 <h3 className="font-athletic font-black italic text-2xl uppercase text-[#00a8e8] mb-6">

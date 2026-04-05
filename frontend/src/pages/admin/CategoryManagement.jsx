@@ -159,10 +159,9 @@ const CategoryManagement = () => {
             >
               <div className="h-48 bg-gray-100">
                 <img
-                  src={category.images?.[0] || 'https://placehold.co/400x200?text=No+Image'}
+                  src={category.images?.[0]}
                   alt={category.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.target.src = 'https://placehold.co/400x200?text=No+Image'; }}
                 />
               </div>
 

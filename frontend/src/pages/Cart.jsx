@@ -171,7 +171,6 @@ const Cart = () => {
                         </div>
                       </div>
 
-                      {/* Subtotal */}
                       <div className="text-right">
                         <p className="text-sm text-gray-600">Subtotal</p>
                         <p className="text-2xl font-black italic">

@@ -134,7 +134,7 @@ const handleSubmit = async (e) => {
             >
               <div className="relative h-48 bg-slate-50 flex items-center justify-center p-6">
                 <img
-                  src={brand.logo || 'https://via.placeholder.com/200'}
+                  src={brand.logo}
                   alt={brand.name}
                   className="max-h-full max-w-full object-contain"
                 />
