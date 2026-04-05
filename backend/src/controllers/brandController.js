@@ -164,7 +164,6 @@ exports.deleteBrand = async (req, res) => {
             });
         }
 
-        // Optional: Check if any products are using this brand
         const Product = require('../models/Product');
         const productsWithBrand = await Product.countDocuments({ brand: req.params.id });
 

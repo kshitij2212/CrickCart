@@ -109,7 +109,6 @@ exports.getAllProducts = async (req, res) => {
 
     console.log("REQ QUERY:", req.query);
 
-    // CATEGORY FILTER
     if (category) {
       if (mongoose.Types.ObjectId.isValid(category)) {
         query.category = category;
@@ -131,7 +130,6 @@ exports.getAllProducts = async (req, res) => {
       }
     }
 
-    // BRAND FILTER
     if (brand) {
       if (mongoose.Types.ObjectId.isValid(brand)) {
         query.brand = brand;
@@ -158,7 +156,6 @@ exports.getAllProducts = async (req, res) => {
       }
     }
 
-    // SEARCH FILTER
     if (search && search.trim()) {
       const searchValue = search.trim();
       query.$or = [
@@ -167,14 +164,12 @@ exports.getAllProducts = async (req, res) => {
       ];
     }
 
-    // FEATURED FILTER
     if (featured !== undefined) {
       query.isFeatured = featured === "true";
     }
 
     console.log("FINAL QUERY:", JSON.stringify(query, null, 2));
 
-    // FETCH ALL MATCHING PRODUCTS FIRST
     let allProducts = await Product.find(query)
       .populate("category", "name slug color")
       .populate("brand", "name slug logo")
@@ -182,7 +177,6 @@ exports.getAllProducts = async (req, res) => {
 
     console.log("ALL MATCHING PRODUCTS:", allProducts.length);
 
-    // APPLY FINAL PRICE FILTER IN JS (important because finalPrice is virtual)
     if (minPrice || maxPrice) {
       allProducts = allProducts.filter((product) => {
         const finalPrice =
@@ -200,7 +194,6 @@ exports.getAllProducts = async (req, res) => {
     const totalFiltered = allProducts.length;
     const totalPages = Math.ceil(totalFiltered / limitNumber);
 
-    // PAGINATION AFTER ALL FILTERS
     const paginatedProducts = allProducts.slice(skip, skip + limitNumber);
 
     res.status(200).json({
@@ -282,7 +275,6 @@ exports.updateProduct = async (req, res) => {
             });
         }
 
-        // If category is being updated, validate it
         if (req.body.category) {
             const category = await Category.findById(req.body.category);
             if (!category) {
@@ -293,7 +285,6 @@ exports.updateProduct = async (req, res) => {
             }
         }
 
-        // ✅ ADD: If brand is being updated, validate it
         if (req.body.brand) {
             const mongoose = require('mongoose');
             if (mongoose.Types.ObjectId.isValid(req.body.brand)) {
@@ -308,7 +299,6 @@ exports.updateProduct = async (req, res) => {
             }
         }
 
-        // If name is being updated, regenerate slug
         if (req.body.name && req.body.name !== product.name) {
             req.body.slug = slugify(req.body.name, { lower: true }) + '-' + Date.now();
         }
@@ -322,7 +312,7 @@ exports.updateProduct = async (req, res) => {
             }
         )
         .populate('category', 'name slug color')
-        .populate('brand', 'name slug logo');  // ✅ ADD THIS
+        .populate('brand', 'name slug logo');
 
         res.status(200).json({
             success: true,

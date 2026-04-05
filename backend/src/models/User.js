@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: false,   // Google users ka password nahi hoga
+        required: false,
         minlength: 6,
         select: false
     },
@@ -77,7 +77,7 @@ userSchema.set('toJSON', {
 
 userSchema.pre('save', async function () {
     if (!this.isModified('password')) return;
-    if (!this.password) return;   // Google users skip
+    if (!this.password) return;
 
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);

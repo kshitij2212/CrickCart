@@ -33,7 +33,6 @@ cartSchema.virtual('id').get(function () {
     return this._id.toHexString();
 });
 
-// Total items in cart
 cartSchema.virtual('totalItems').get(function () {
     return this.items.reduce(
         (total, item) => total + item.quantity,
@@ -41,7 +40,6 @@ cartSchema.virtual('totalItems').get(function () {
     );
 });
 
-// Total price of cart
 cartSchema.virtual('totalPrice').get(function () {
     return this.items.reduce(
         (total, item) => total + item.price * item.quantity,

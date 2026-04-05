@@ -79,7 +79,6 @@ exports.createOrder = async (req, res) => {
             }
         }
 
-        // Safer order number generation — retry loop + catch duplicate key at DB level
         let order;
         let attempts = 0;
         const maxAttempts = 5;
