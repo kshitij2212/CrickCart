@@ -84,10 +84,27 @@ const Products = () => {
       if (search) params.search = search;
       if (minPrice) params.minPrice = Number(minPrice);
       if (maxPrice) params.maxPrice = Number(maxPrice);
-      if (sort) params.sort = sort;
+      if (sort === 'featured') {
+        params.featured = true;
+      } else if (sort) {
+        params.sort = sort;
+      }
 
       const response = await productService.getProducts(params);
-      const fetchedProducts = response.data || [];
+      let fetchedProducts = response.data || [];
+      if (sort === 'price') {
+        fetchedProducts = fetchedProducts.sort((a, b) => {
+        const priceA = a.discount ? a.price - (a.price * a.discount / 100) : a.price;
+        const priceB = b.discount ? b.price - (b.price * b.discount / 100) : b.price;
+        return priceA - priceB;
+      });
+      } else if (sort === '-price') {
+        fetchedProducts = fetchedProducts.sort((a, b) => {
+        const priceA = a.discount ? a.price - (a.price * a.discount / 100) : a.price;
+        const priceB = b.discount ? b.price - (b.price * b.discount / 100) : b.price;
+        return priceB - priceA;
+        });
+      }
       setProducts(fetchedProducts);
 
       const pages = response.totalPages || response.pagination?.pages || response.pagination?.totalPages || 1;
@@ -331,22 +348,22 @@ const Products = () => {
               </button>
               <select value={sortBy} onChange={(e) => handleSort(e.target.value)}
                 className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-black italic text-sm cursor-pointer focus:border-[#00a8e8] focus:ring-0">
-                <option value="">FEATURED</option>
                 <option value="-createdAt">NEWEST</option>
                 <option value="price">PRICE: LOW-HIGH</option>
                 <option value="-price">PRICE: HIGH-LOW</option>
                 <option value="-rating">TOP RATED</option>
+                <option value="featured">FEATURED</option>
               </select>
             </div>
 
             <div className="hidden lg:flex justify-end mb-6 -mt-[65px]">
               <select value={sortBy} onChange={(e) => handleSort(e.target.value)}
                 className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-black italic cursor-pointer focus:border-[#00a8e8] focus:ring-0">
-                <option value="">FEATURED</option>
                 <option value="-createdAt">NEWEST FIRST</option>
                 <option value="price">PRICE: LOW TO HIGH</option>
                 <option value="-price">PRICE: HIGH TO LOW</option>
                 <option value="-rating">HIGHEST RATED</option>
+                <option value="featured">FEATURED</option>
               </select>
             </div>
 
