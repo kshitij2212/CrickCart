@@ -11,6 +11,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
   const [brands, setBrands] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [hoveredStar, setHoveredStar] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -43,6 +44,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
           numReviews: product.numReviews || 0,
           isFeatured: product.isFeatured || false,
         });
+        setExistingImages(product.images || []);
         setImagePreviews(product.images || []);
       }
     }
@@ -108,9 +110,15 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
   };
 
   const removeImage = (index) => {
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-  };
+  const existingCount = existingImages.length;
+  if (index < existingCount) {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  } else {
+    const newIndex = index - existingCount;
+    setImageFiles(prev => prev.filter((_, i) => i !== newIndex));
+  }
+  setImagePreviews(prev => prev.filter((_, i) => i !== index));
+};
 
   const handleClose = () => {
     setFormData({
@@ -127,6 +135,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
     });
     setImageFiles([]);
     setImagePreviews([]);
+    setExistingImages([]);
     setHoveredStar(0);
     onClose();
   };
@@ -161,7 +170,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
       }
 
       if (product) {
-        const existingImages = product.images || [];
+
         await productService.updateProduct(product.id, {
           name: formData.name,
           description: formData.description,
@@ -173,7 +182,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
           rating: Number(formData.rating),
           numReviews: Number(formData.numReviews),
           isFeatured: formData.isFeatured,
-          images: newImageUrls.length > 0 ? [...existingImages, ...newImageUrls] : existingImages,
+          images: [...existingImages, ...newImageUrls],
         });
         toast.success('Product updated successfully!');
       } else {
