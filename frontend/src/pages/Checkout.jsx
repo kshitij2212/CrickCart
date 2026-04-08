@@ -4,14 +4,25 @@ import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import {
     Lock, Truck, Shield, CreditCard, ChevronRight, MapPin,
-    Phone, User, Home, Package, Plus, Check, Trash2, Star
+    Phone, User, Home, Package, Plus, Check, Trash2, Star, Copy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import orderService from '../services/orderService';
 import addressService from '../services/addressService';
+import api from '../services/api';
 
-const PAYMENT_METHOD_MAP = { card: 'Card', upi: 'UPI', cod: 'COD' };
+const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
+
+const PAYMENT_METHOD_MAP = { online: 'Card', cod: 'COD' };
 
 const INDIAN_STATES = [
     'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
@@ -39,13 +50,9 @@ const Checkout = () => {
     const [addrLoading,      setAddrLoading]       = useState(false);
     const [savingAddr,       setSavingAddr]        = useState(false);
 
-    const [showPaymentModal,  setShowPaymentModal]  = useState(false);
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [shippingMethod,    setShippingMethod]    = useState('standard');
-    const [paymentMethod,     setPaymentMethod]     = useState('card');
-
-    const [cardInfo, setCardInfo] = useState({ cardNumber: '', expiry: '', cvv: '', name: '' });
-    const [upiId,    setUpiId]    = useState('');
+    const [paymentMethod,     setPaymentMethod]     = useState('online');
 
     const initCart = useCallback(() => { fetchCart(); }, []);
     useEffect(() => { initCart(); }, [initCart]);
@@ -83,14 +90,7 @@ const Checkout = () => {
     const tax          = Math.round(subtotal * 0.18);
     const total        = subtotal + shippingCost + tax;
 
-    const handleCardNumber = (e) => {
-        const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
-        setCardInfo(p => ({ ...p, cardNumber: raw.match(/.{1,4}/g)?.join(' ') || raw }));
-    };
-    const handleExpiry = (e) => {
-        const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
-        setCardInfo(p => ({ ...p, expiry: raw.length > 2 ? `${raw.slice(0,2)}/${raw.slice(2)}` : raw }));
-    };
+
 
     const handleSaveNewAddress = async () => {
         const { name, phone, street, city, state, pincode } = newAddrForm;
@@ -143,77 +143,147 @@ const Checkout = () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return false;
         }
-        if (paymentMethod === 'card') {
-            if (!cardInfo.name.trim() || !cardInfo.cardNumber || !cardInfo.expiry || !cardInfo.cvv) {
-                toast.error('Please fill all card details'); return false;
-            }
-            if (cardInfo.cardNumber.replace(/\s/g, '').length < 16) {
-                toast.error('Enter a valid 16-digit card number'); return false;
-            }
-            if (!/^\d{2}\/\d{2}$/.test(cardInfo.expiry)) {
-                toast.error('Enter expiry in MM/YY format'); return false;
-            }
-            if (cardInfo.cvv.length < 3) {
-                toast.error('Enter a valid CVV'); return false;
-            }
-        }
-        if (paymentMethod === 'upi') {
-            if (!upiId.trim() || !upiId.includes('@')) {
-                toast.error('Enter a valid UPI ID (e.g. name@paytm)'); return false;
-            }
-        }
+
         if (cartItems.length === 0) {
             toast.error('Your cart is empty'); return false;
         }
         return true;
     };
 
-    const handlePlaceOrder = () => {
-        if (!validate()) return;
-        setShowPaymentModal(true);
+    const handleCopy = (text) => {
+        navigator.clipboard.writeText(text.replace(/ /g, ''));
+        toast.success('Card number copied!');
     };
 
-    const handlePaymentConfirm = async () => {
+    const handlePlaceOrder = async () => {
+        if (!validate()) return;
         setPaymentProcessing(true);
         try {
-            await new Promise(r => setTimeout(r, 2000));
-
             const selectedAddress = savedAddresses.find(a => a._id === selectedAddrId);
 
-            const orderData = {
-                orderItems: cartItems.map(item => ({
-                    product:  item.product.id || item.product._id,
-                    name:     item.product.name,
-                    quantity: item.quantity,
-                    price:    item.product.finalPrice || item.product.price,
-                    image:    item.product.images?.[0] || '',
-                })),
-                shippingAddress: {
-                    name:    selectedAddress.name,
-                    street:  selectedAddress.street,
-                    city:    selectedAddress.city,
-                    state:   selectedAddress.state,
-                    pincode: selectedAddress.pincode,
-                    phone:   selectedAddress.phone,
+            if (paymentMethod === 'cod') {
+                const orderData = {
+                    orderItems: cartItems.map(item => ({
+                        product:  item.product.id || item.product._id,
+                        name:     item.product.name,
+                        quantity: item.quantity,
+                        price:    item.product.finalPrice || item.product.price,
+                        image:    item.product.images?.[0] || '',
+                    })),
+                    shippingAddress: {
+                        name:    selectedAddress.name,
+                        street:  selectedAddress.street,
+                        city:    selectedAddress.city,
+                        state:   selectedAddress.state,
+                        pincode: selectedAddress.pincode,
+                        phone:   selectedAddress.phone,
+                    },
+                    paymentMethod: PAYMENT_METHOD_MAP[paymentMethod],
+                    itemsPrice:    subtotal,
+                    taxPrice:      tax,
+                    shippingPrice: shippingCost,
+                    discount:      0,
+                    totalPrice:    total,
+                };
+
+                await orderService.createOrder(orderData);
+                await clearCart();
+                toast.success('Order placed successfully!');
+                navigate('/orders');
+                return;
+            }
+
+            const res = await loadRazorpayScript();
+            if (!res) {
+                toast.error('Razorpay SDK failed to load. Are you online?');
+                return;
+            }
+
+            const { data: orderDataRes } = await api.post('/payment/create-order', { amount: total });
+            
+            if (!orderDataRes.success) {
+                toast.error('Server error. Failed to create order.');
+                return;
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
+                amount: orderDataRes.order.amount,
+                currency: orderDataRes.order.currency,
+                name: "CrickCart",
+                description: "Test Transaction",
+                order_id: orderDataRes.order.id,
+                handler: async function (response) {
+                    console.log('Razorpay response:', response);
+                    try {
+                        const { data: verifyData } = await api.post('/payment/verify-payment', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                        });
+
+                        if (verifyData.success) {
+                            const dbOrderData = {
+                                orderItems: cartItems.map(item => ({
+                                    product:  item.product.id || item.product._id,
+                                    name:     item.product.name,
+                                    quantity: item.quantity,
+                                    price:    item.product.finalPrice || item.product.price,
+                                    image:    item.product.images?.[0] || '',
+                                })),
+                                shippingAddress: {
+                                    name:    selectedAddress.name,
+                                    street:  selectedAddress.street,
+                                    city:    selectedAddress.city,
+                                    state:   selectedAddress.state,
+                                    pincode: selectedAddress.pincode,
+                                    phone:   selectedAddress.phone,
+                                },
+                                paymentMethod: PAYMENT_METHOD_MAP[paymentMethod],
+                                paymentResult: {
+                                    id: response.razorpay_payment_id,
+                                    status: 'success',
+                                    update_time: new Date().toISOString(),
+                                    email_address: user?.email || '',
+                                },
+                                isPaid: true,
+                                paidAt: new Date(),
+                                itemsPrice:    subtotal,
+                                taxPrice:      tax,
+                                shippingPrice: shippingCost,
+                                discount:      0,
+                                totalPrice:    total,
+                            };
+                            
+                            await orderService.createOrder(dbOrderData);
+                            await clearCart();
+                            toast.success('Payment successful & Order placed!');
+                            navigate('/orders');
+                        } else {
+                            toast.error('Payment Verification Failed!');
+                        }
+                    } catch (err) {
+                        toast.error('Error verifying payment.');
+                    }
                 },
-                paymentMethod: PAYMENT_METHOD_MAP[paymentMethod],
-                itemsPrice:    subtotal,
-                taxPrice:      tax,
-                shippingPrice: shippingCost,
-                discount:      0,
-                totalPrice:    total,
+                prefill: {
+                    name: selectedAddress.name,
+                    email: user?.email || "test@crickcart.com",
+                    contact: selectedAddress.phone,
+                },
+                theme: {
+                    color: "#00a8e8",
+                },
             };
 
-            await orderService.createOrder(orderData);
-            await clearCart();
-            toast.success('Order placed successfully! 🎉');
-            navigate('/orders');
+            const paymentObject = new window.Razorpay(options);
+            paymentObject.open();
+
         } catch (error) {
             console.error('Order error:', error);
-            toast.error(error.response?.data?.message || 'Failed to place order');
+            toast.error(error.response?.data?.message || 'Failed to initiate payment');
         } finally {
             setPaymentProcessing(false);
-            setShowPaymentModal(false);
         }
     };
 
@@ -485,66 +555,61 @@ const Checkout = () => {
                                 <h2 className="text-2xl font-black italic text-[#00171f] uppercase">PAYMENT METHOD</h2>
                             </div>
 
-                            <div className="flex gap-2 mb-6 bg-slate-100 p-2 rounded-xl">
+                            <div className="flex gap-4 mb-6">
                                 {[
-                                    { id: 'card', label: 'Credit/Debit Card', icon: CreditCard },
-                                    { id: 'upi',  label: 'UPI',               icon: Phone },
-                                    { id: 'cod',  label: 'Cash on Delivery',  icon: Package },
+                                    { id: 'online', label: 'Pay Online', icon: CreditCard },
+                                    { id: 'cod',    label: 'Cash on Delivery',      icon: Package },
                                 ].map(({ id, label, icon: Icon }) => (
-                                    <button key={id} onClick={() => setPaymentMethod(id)}
-                                        className={`flex-1 py-3 px-4 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                                            paymentMethod === id ? 'bg-[#00a8e8] text-white shadow-md' : 'text-slate-600 hover:bg-white'
-                                        }`}>
-                                        <Icon className="w-4 h-4" />
-                                        <span className="hidden sm:inline">{label}</span>
-                                    </button>
+                                    <label key={id}
+                                        className={`flex-1 flex flex-col items-center justify-center p-6 cursor-pointer rounded-xl transition-all border-2 ${
+                                            paymentMethod === id
+                                                ? 'border-[#00a8e8] bg-[#00a8e8]/5 shadow-md'
+                                                : 'border-slate-200 hover:border-[#00a8e8]/50'
+                                        }`}
+                                    >
+                                        <Icon className={`w-8 h-8 mb-3 ${paymentMethod === id ? 'text-[#00a8e8]' : 'text-slate-400'}`} />
+                                        <span className={`font-black text-sm uppercase text-center ${paymentMethod === id ? 'text-[#00a8e8]' : 'text-slate-600'}`}>{label}</span>
+                                        <input type="radio" name="paymentMethod" checked={paymentMethod === id}
+                                            onChange={() => setPaymentMethod(id)} className="hidden" />
+                                    </label>
                                 ))}
                             </div>
 
-                            {paymentMethod === 'card' && (
+                            {paymentMethod === 'online' && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                    className="grid grid-cols-2 gap-4 p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                                    <div className="col-span-full">
-                                        <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CARDHOLDER NAME</label>
-                                        <input type="text" value={cardInfo.name}
-                                            onChange={e => setCardInfo(p => ({ ...p, name: e.target.value }))}
-                                            className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                                            placeholder="VIRAT KOHLI" />
-                                    </div>
-                                    <div className="col-span-full">
-                                        <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CARD NUMBER</label>
-                                        <div className="relative">
-                                            <input type="text" inputMode="numeric" value={cardInfo.cardNumber}
-                                                onChange={handleCardNumber}
-                                                className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition pr-12"
-                                                placeholder="1234 5678 9012 3456" maxLength="19" />
-                                            <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 text-[#00a8e8] w-6 h-6" />
+                                    className="p-6 bg-gradient-to-br from-[#00a8e8]/10 to-[#00a8e8]/5 rounded-xl border-2 border-[#00a8e8]/20 text-center space-y-4">
+                                    <div className="bg-white p-4 rounded-lg border border-dashed border-[#00a8e8]/40 text-left">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-black uppercase tracking-wider text-[#00a8e8]">Test Mode Cards</span>
+                                            <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">Any Expiry / CVV</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between text-sm font-mono bg-slate-50 p-2 rounded border border-slate-100 group">
+                                                <div className="flex items-center gap-2 text-slate-700">
+                                                    <CreditCard className="w-4 h-4 text-slate-400" />
+                                                    4100 2800 0000 1007
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400">MASTER SUCCESS</span>
+                                                    <button onClick={(e) => { e.preventDefault(); handleCopy('4100 2800 0000 1007'); }} className="text-slate-400 hover:text-[#00a8e8] transition" title="Copy Card Number">
+                                                        <Copy className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between text-sm font-mono bg-slate-50 p-2 rounded border border-slate-100 group">
+                                                <div className="flex items-center gap-2 text-slate-700">
+                                                    <CreditCard className="w-4 h-4 text-slate-400" />
+                                                    4718 6091 0820 4366
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400">RUPAY SUCCESS</span>
+                                                    <button onClick={(e) => { e.preventDefault(); handleCopy('4718 6091 0820 4366'); }} className="text-slate-400 hover:text-[#00a8e8] transition" title="Copy Card Number">
+                                                        <Copy className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">EXPIRY DATE</label>
-                                        <input type="text" inputMode="numeric" value={cardInfo.expiry}
-                                            onChange={handleExpiry}
-                                            className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                                            placeholder="MM/YY" maxLength="5" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">CVV</label>
-                                        <input type="password" inputMode="numeric" value={cardInfo.cvv}
-                                            onChange={e => setCardInfo(p => ({ ...p, cvv: e.target.value.replace(/\D/g,'').slice(0,3) }))}
-                                            className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                                            placeholder="•••" maxLength="3" />
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {paymentMethod === 'upi' && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                    className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                                    <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">UPI ID</label>
-                                    <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                                        placeholder="yourname@paytm" />
                                 </motion.div>
                             )}
 
@@ -642,57 +707,6 @@ const Checkout = () => {
                 </div>
             </div>
 
-            {showPaymentModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 bg-[#00a8e8]/10 rounded-xl flex items-center justify-center">
-                                <Lock className="w-5 h-5 text-[#00a8e8]" />
-                            </div>
-                            <div>
-                                <h3 className="font-black italic text-xl text-[#00171f]">DEMO PAYMENT</h3>
-                                <p className="text-xs text-gray-400">Simulated — no real money</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-[#00a8e8]/5 border border-[#00a8e8]/20 rounded-xl p-4 mb-6">
-                            <p className="text-xs font-bold text-[#00a8e8] uppercase tracking-widest mb-1">Amount to Pay</p>
-                            <p className="text-4xl font-black text-[#00171f]">₹{total}</p>
-                        </div>
-
-                        <div className="space-y-3 mb-6 text-sm text-gray-500">
-                            <div className="flex justify-between">
-                                <span>Payment Mode</span>
-                                <span className="font-bold text-[#00171f] uppercase">{PAYMENT_METHOD_MAP[paymentMethod]}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Items</span>
-                                <span className="font-bold text-[#00171f]">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Status</span>
-                                <span className="font-bold text-green-500">DEMO MODE</span>
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <button onClick={() => setShowPaymentModal(false)} disabled={paymentProcessing}
-                                className="flex-1 py-3 border-2 border-gray-200 rounded-xl font-black italic text-gray-600 hover:bg-gray-50 transition disabled:opacity-50">
-                                CANCEL
-                            </button>
-                            <button onClick={handlePaymentConfirm} disabled={paymentProcessing}
-                                className="flex-1 py-3 bg-[#00a8e8] text-white rounded-xl font-black italic hover:brightness-110 transition disabled:opacity-50 flex items-center justify-center gap-2">
-                                {paymentProcessing ? (
-                                    <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> PROCESSING...</>
-                                ) : (
-                                    <><Lock className="w-4 h-4" /> PAY ₹{total}</>
-                                )}
-                            </button>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
         </div>
     );
 };

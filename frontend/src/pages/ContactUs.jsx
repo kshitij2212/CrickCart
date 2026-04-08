@@ -86,7 +86,7 @@ const ContactUs = () => {
     await new Promise(resolve => setTimeout(resolve, 1800));
     setSubmitting(false);
     setSubmitted(true);
-    toast.success("Message sent! We'll get back to you soon 🏏");
+    toast.success("Message sent! We'll get back to you soon.");
   };
 
   return (
