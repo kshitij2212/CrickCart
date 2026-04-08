@@ -202,7 +202,7 @@ const Profile = () => {
                     <input type="text" value={addrForm.name}
                       onChange={e => setAddrForm(p => ({ ...p, name: e.target.value }))}
                       className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-lg focus:border-[#00a8e8] focus:outline-none transition"
-                      placeholder="Virat Kohli" />
+                      placeholder="Your name" />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-black uppercase tracking-widest text-slate-600 mb-2">Address *</label>

@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 export default function Home() {
   return (
     <main className="max-w-7xl pt-12 mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <section className="relative overflow-hidden mb-16 min-h-[600px] flex items-center bg-navy text-white">
+      <section className="relative overflow-hidden mb-16 min-h-[600px] flex items-center bg-navy text-white rounded-2xl">
         <div className="absolute inset-0 z-0">
           <img 
             alt="High Motion Cricketer" 

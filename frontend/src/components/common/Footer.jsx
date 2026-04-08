@@ -123,22 +123,10 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-end items-center gap-6">
           <p className="text-slate-500 text-xs font-black italic tracking-widest uppercase">
             © 2026 CRICKCART. DOMINATE THE GAME.
           </p>
-
-          <div className="flex gap-6 opacity-50">
-            <span className="material-symbols-outlined text-3xl">
-              credit_card
-            </span>
-            <span className="material-symbols-outlined text-3xl">
-              account_balance_wallet
-            </span>
-            <span className="material-symbols-outlined text-3xl">
-              token
-            </span>
-          </div>
         </div>
 
       </div>

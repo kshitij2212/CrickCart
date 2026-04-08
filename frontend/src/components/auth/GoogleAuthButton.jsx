@@ -29,14 +29,14 @@ export default function GoogleAuthButton() {
             });
 
             window.google.accounts.id.renderButton(
-                document.getElementById('google-signin-btn'),
-                {
-                    theme: 'filled_black',
-                    size: 'large',
-                    width: 400,
-                    text: 'continue_with',
-                    shape: 'rectangular',
-                }
+            document.getElementById('google-signin-btn'),
+            {
+                theme: 'outline',
+                size: 'large',
+                width: '400',
+                text: 'continue_with',
+                shape: 'rectangular',
+            }
             );
         };
 
@@ -53,5 +53,18 @@ export default function GoogleAuthButton() {
         }
     }, []);
 
-    return <div id="google-signin-btn" className="w-full" />;
+    return (
+  <div
+    className="w-full rounded-[10px] overflow-hidden border-[1.5px]"
+    style={{
+      borderColor: 'rgba(0,168,232,0.2)',
+      background: 'rgba(255,255,255,0.6)',
+    }}
+  >
+    <div
+      id="google-signin-btn"
+      className="w-full flex justify-center [&>div]:w-full [&>div>div]:w-full [&>iframe]:w-full"
+    />
+  </div>
+);
 }
