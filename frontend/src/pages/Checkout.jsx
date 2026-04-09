@@ -257,7 +257,7 @@ const Checkout = () => {
                             
                             await orderService.createOrder(dbOrderData);
                             await clearCart();
-                            toast.success('Payment successful & Order placed!');
+                            toast.success('Order placed!');
                             navigate('/orders');
                         } else {
                             toast.error('Payment Verification Failed!');
