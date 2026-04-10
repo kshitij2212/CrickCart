@@ -86,7 +86,7 @@ const handleSubmit = async (e) => {
       toast.success(`Brand "${confirmDialog.brandName}" deleted successfully!`);
       fetchBrands();
     } catch (error) {
-      toast.error('Failed to delete brand');
+      toast.error(error.response?.data?.message || 'Failed to delete brand');
     }
   };
 

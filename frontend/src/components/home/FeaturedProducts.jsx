@@ -137,10 +137,15 @@ const FeaturedProducts = () => {
     }, 100);
 
     return () => {
-      clearTimeout(timer);
-      ScrollTrigger.getAll().forEach((t) => t.kill());
-    };
-  }, [loading, mode, products.length]);
+  clearTimeout(timer);
+
+  if (scrollTweenRef.current) {
+    scrollTweenRef.current.kill();
+  }
+
+  ScrollTrigger.getAll().forEach((t) => t.kill())
+  };
+  }, [loading, mode, products]);
 
   const [page, setPage] = useState(0);
   const PER_PAGE = 4;

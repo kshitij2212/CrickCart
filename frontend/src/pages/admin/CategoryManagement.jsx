@@ -79,7 +79,7 @@ const CategoryManagement = () => {
 
   } catch (error) {
     console.error(error);
-    toast.error(editingCategory ? "Failed to update category" : "Failed to create category");
+    toast.error(error.response?.data?.message || (editingCategory ? "Failed to update category" : "Failed to create category"));
   } finally {
     setSubmitting(false);
   }
@@ -112,7 +112,7 @@ const CategoryManagement = () => {
       setConfirmDialog({ isOpen: false, categoryId: null, categoryName: "" });
       fetchCategories();
     } catch (error) {
-      toast.error("Failed to delete category");
+      toast.error(error.response?.data?.message || "Failed to delete category");
     }
   };
 

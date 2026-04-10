@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -8,26 +9,32 @@ const OrderManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      setOrders([
-        {
-          id: '1',
-          orderNumber: 'ORD-2026-001',
-          user: { name: 'John Doe', email: 'john@example.com' },
-          totalPrice: 15000,
-          orderStatus: 'Delivered',
-          createdAt: '2026-02-14',
-        },
-      ]);
-      setLoading(false);
-    }, 1000);
+    fetchOrders();
   }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/orders');
+      // API returns { success, count, total, data }
+      const orders = res.data?.data || [];
+      // Normalize ID: backend returns _id when using .lean(), ensure `id` exists
+      const normalized = orders.map((o) => ({ ...o, id: o.id || o._id }));
+      setOrders(normalized);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to fetch orders');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
+      await api.put(`/orders/${orderId}/status`, { status: newStatus });
       toast.success('Order status updated');
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, orderStatus: newStatus } : o)));
     } catch (error) {
-      toast.error('Failed to update status');
+      toast.error(error.response?.data?.message || 'Failed to update status');
     }
   };
 
@@ -60,13 +67,12 @@ const OrderManagement = () => {
                 <th className="text-left py-4 px-6 font-bold">Amount</th>
                 <th className="text-left py-4 px-6 font-bold">Status</th>
                 <th className="text-left py-4 px-6 font-bold">Date</th>
-                <th className="text-left py-4 px-6 font-bold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-8">
+                  <td colSpan="5" className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00a8e8] mx-auto"></div>
                   </td>
                 </tr>
@@ -76,11 +82,11 @@ const OrderManagement = () => {
                     <td className="py-4 px-6 font-medium">{order.orderNumber}</td>
                     <td className="py-4 px-6">
                       <div>
-                        <p className="font-medium">{order.user.name}</p>
-                        <p className="text-sm text-gray-500">{order.user.email}</p>
+                        <p className="font-medium">{order.user?.name || 'Unknown User'}</p>
+                        <p className="text-sm text-gray-500">{order.user?.email || '-'}</p>
                       </div>
                     </td>
-                    <td className="py-4 px-6 font-bold">₹{order.totalPrice.toLocaleString('en-IN')}</td>
+                    <td className="py-4 px-6 font-bold">₹{(order.pricing?.totalPrice || 0).toLocaleString('en-IN')}</td>
                     <td className="py-4 px-6">
                       <select
                         value={order.orderStatus}
@@ -95,11 +101,7 @@ const OrderManagement = () => {
                       </select>
                     </td>
                     <td className="py-4 px-6">{order.createdAt}</td>
-                    <td className="py-4 px-6">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </td>
+                    
                   </tr>
                 ))
               )}

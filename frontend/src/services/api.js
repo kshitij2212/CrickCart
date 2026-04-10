@@ -15,6 +15,27 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user.email === 'admin@gmail.com') {
+          const method = config.method?.toLowerCase();
+          if (
+            method !== 'get' &&
+            !config.url?.includes('/users/login') &&
+            !config.url?.includes('/users/register') &&
+            !config.url?.includes('/users/google')
+          ) {
+            return Promise.reject({
+              response: {
+                data: { message: 'Action restricted in Demo Mode.' },
+              },
+            });
+          }
+        }
+      }
+    } catch (e) {}
     return config;
   },
   (error) => {

@@ -20,15 +20,29 @@ const ProductManagement = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-  const fetchProducts = async () => {
-  try {
-    const data = await productService.getProducts({ limit: 1000 });
-    setProducts(data.data || []);
+  useEffect(() => {
+    fetchProducts(debouncedSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearch]);
+
+  const fetchProducts = async (searchParam) => {
+    setLoading(true);
+    try {
+      const params = { limit: ITEMS_PER_PAGE, page: currentPage };
+      const searchValue = typeof searchParam === 'string' ? searchParam : debouncedSearch;
+      if (searchValue && searchValue.trim()) params.search = searchValue.trim();
+
+      const data = await productService.getProducts(params);
+      setProducts(data.data || []);
+      setTotalProducts(data.total || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to fetch products');
@@ -57,7 +71,7 @@ const ProductManagement = () => {
       setConfirmDialog({ isOpen: false, productId: null, productName: '' });
       fetchProducts();
     } catch (error) {
-      toast.error('Failed to delete product');
+      toast.error(error.response?.data?.message || 'Failed to delete product');
     }
   };
 
@@ -66,15 +80,9 @@ const ProductManagement = () => {
     setEditingProduct(null);
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  // products is now the current page's data from server
+  const paginatedProducts = products;
+  const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 
   return (
     <div>
@@ -127,7 +135,7 @@ const ProductManagement = () => {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00a8e8] mx-auto"></div>
                   </td>
                 </tr>
-              ) : filteredProducts.length === 0 ? (
+              ) : paginatedProducts.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="text-center py-8 text-gray-500">
                     No products found
@@ -178,9 +186,9 @@ const ProductManagement = () => {
           </table>
         </div>
         {totalPages > 1 && (
-    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
         <p className="text-sm text-gray-500">
-            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} products
+          Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, totalProducts)} of {totalProducts} products
         </p>
         <div className="flex items-center gap-2">
             <button
@@ -190,7 +198,7 @@ const ProductManagement = () => {
             >
                 <ChevronLeft className="w-4 h-4" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                 <button
                     key={page}
                     onClick={() => setCurrentPage(page)}

@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Package, ShoppingCart, Users, IndianRupee, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Package,
+  ShoppingCart,
+  Users,
+  IndianRupee,
+  TrendingUp,
+  Eye,
+} from 'lucide-react';
+import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Overview = () => {
   const [stats, setStats] = useState({
@@ -8,75 +18,90 @@ const Overview = () => {
     totalUsers: 0,
     totalRevenue: 0,
   });
+  const [recentOrders, setRecentOrders] = useState([]);
 
   useEffect(() => {
-    setStats({
-      totalProducts: 145,
-      totalOrders: 89,
-      totalUsers: 234,
-      totalRevenue: 567890,
-    });
+    const loadStats = async () => {
+      try {
+        const pRes = await api.get('/products?limit=1');
+        const totalProducts = pRes.data?.total ?? 0;
+
+        const oRes = await api.get('/orders?limit=5');
+        const orders = oRes.data?.data || [];
+        const totalOrders = oRes.data?.total ?? orders.length;
+        const totalRevenue = orders.reduce(
+          (sum, o) => sum + (o.pricing?.totalPrice || 0),
+          0
+        );
+
+        let totalUsers = 0;
+        try {
+          const uRes = await api.get('/admin/users');
+          totalUsers = Array.isArray(uRes.data)
+            ? uRes.data.length
+            : uRes.data?.total ?? 0;
+        } catch (error) {
+          console.log(error)
+        }
+
+        setStats({ totalProducts, totalOrders, totalUsers, totalRevenue });
+        setRecentOrders(orders.slice(0, 5));
+      } catch (error) {
+        toast.error('Failed to load dashboard stats');
+        console.log(error)
+      }
+    };
+
+    loadStats();
   }, []);
 
   const statCards = [
-    {
-      title: 'Total Products',
-      value: stats.totalProducts,
-      icon: Package,
-      color: 'bg-blue-500',
-      trend: '+12%',
-    },
-    {
-      title: 'Total Orders',
-      value: stats.totalOrders,
-      icon: ShoppingCart,
-      color: 'bg-green-500',
-      trend: '+8%',
-    },
-    {
-      title: 'Total Users',
-      value: stats.totalUsers,
-      icon: Users,
-      color: 'bg-purple-500',
-      trend: '+23%',
-    },
-    {
-      title: 'Total Revenue',
-      value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`,
-      icon: IndianRupee,
-      color: 'bg-[#00a8e8]',
-      trend: '+15%',
-    },
+    { title: 'Total Products', value: stats.totalProducts, icon: Package, color: 'bg-blue-500', trend: '+12%', path: '/admin/products' },
+    { title: 'Total Orders', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-green-500', trend: '+8%', path: '/admin/orders' },
+    { title: 'Total Users', value: stats.totalUsers, icon: Users, color: 'bg-purple-500', trend: '+23%', path: '/admin/users' },
+    { title: 'Total Revenue', value: `₹${stats.totalRevenue.toLocaleString('en-IN')}`, icon: IndianRupee, color: 'bg-[#00a8e8]', trend: '+15%' },
   ];
+
+  const statusColors = {
+    Delivered: 'bg-green-100 text-green-600',
+    Processing: 'bg-yellow-100 text-yellow-700',
+    Cancelled: 'bg-red-100 text-red-600',
+    Shipped: 'bg-blue-100 text-blue-700',
+  };
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-4xl font-black italic font-athletic text-[#00171f]">
-          Dashboard Overview
-        </h1>
+        <h1 className="text-4xl font-black italic font-athletic text-[#00171f]">Dashboard Overview</h1>
         <p className="text-gray-600 mt-2">Welcome, Admin!</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="w-6 h-6 text-white" />
+        {statCards.map((stat, idx) => {
+          const card = (
+            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`${stat.color} p-3 rounded-lg`}>
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex items-center gap-1 text-green-600 text-sm font-bold">
+                  <TrendingUp className="w-4 h-4" />
+                  {stat.trend}
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-green-600 text-sm font-bold">
-                <TrendingUp className="w-4 h-4" />
-                {stat.trend}
-              </div>
+              <h3 className="text-gray-600 text-sm font-medium mb-2">{stat.title}</h3>
+              <p className="text-3xl font-black">{stat.value}</p>
             </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-2">{stat.title}</h3>
-            <p className="text-3xl font-black">{stat.value}</p>
-          </div>
-        ))}
+          );
+
+          return stat.path ? (
+            <Link to={stat.path} key={idx} className="block">
+              {card}
+            </Link>
+          ) : (
+            <div key={idx}>{card}</div>
+          );
+        })}
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -93,17 +118,25 @@ const Overview = () => {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-gray-100">
-                <td className="py-3 px-4">#ORD-001</td>
-                <td className="py-3 px-4">John Doe</td>
-                <td className="py-3 px-4 font-bold">₹15,000</td>
-                <td className="py-3 px-4">
-                  <span className="px-3 py-1 bg-green-100 text-green-600 text-xs font-bold rounded">
-                    Delivered
-                  </span>
-                </td>
-                <td className="py-3 px-4">14 Feb 2026</td>
-              </tr>
+              {recentOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="py-3 px-4 text-center text-gray-500">No recent orders</td>
+                </tr>
+              ) : (
+                recentOrders.map((order) => (
+                  <tr key={order._id || order.id} className="border-b border-gray-100">
+                    <td className="py-3 px-4">#{(order.orderNumber || order._id || order.id)?.toString().slice(-6).toUpperCase()}</td>
+                    <td className="py-3 px-4">{order.user?.name || 'Unknown'}</td>
+                    <td className="py-3 px-4 font-bold">₹{(order.pricing?.totalPrice || 0).toLocaleString('en-IN')}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-3 py-1 ${statusColors[order.orderStatus] || 'bg-gray-100 text-gray-600'} text-xs font-bold rounded`}>
+                        {order.orderStatus || '—'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : '—'}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

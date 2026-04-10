@@ -38,8 +38,8 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
           price: product.price || '',
           discount: product.discount || '',
           countInStock: product.countInStock || '',
-          category: product.category?._id || product.category || '',
-          brand: product.brand?._id || product.brand || '',
+            category: product.category?.id || product.category?._id || (typeof product.category === 'string' ? product.category : ''),
+            brand: product.brand?.id || product.brand?._id || (typeof product.brand === 'string' ? product.brand : ''),
           rating: product.rating || 0,
           numReviews: product.numReviews || 0,
           isFeatured: product.isFeatured || false,
@@ -48,7 +48,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
         setImagePreviews(product.images || []);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, product]);
 
   const fetchCategories = async () => {
     try {
@@ -308,7 +308,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
               >
                 <option value="">Select category</option>
                 {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  <option key={cat._id || cat.id} value={cat._id || cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -323,7 +323,7 @@ const AddProductModal = ({ isOpen, onClose, onSuccess, product = null }) => {
               >
                 <option value="">Select brand</option>
                 {brands.map((brand) => (
-                  <option key={brand._id} value={brand._id}>{brand.name}</option>
+                  <option key={brand._id || brand.id} value={brand._id || brand.id}>{brand.name}</option>
                 ))}
               </select>
             </div>

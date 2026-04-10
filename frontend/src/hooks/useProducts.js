@@ -31,7 +31,7 @@ export const useProducts = (filters = {}) => {
     };
 
     fetchProducts();
-  }, [JSON.stringify(filters)]);
+  }, [filters]);
 
   return { products, loading, error, pagination };
 };

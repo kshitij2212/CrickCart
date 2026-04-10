@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Shield, ShieldOff, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import api from '../../services/api';
 
 const UserManagement = () => {
   const [confirmDialog, setConfirmDialog] = useState({
@@ -20,41 +21,12 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      setTimeout(() => {
-        setUsers([
-          {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            phone: '9876543210',
-            role: 'user',
-            isActive: true,
-            createdAt: '2026-01-15',
-          },
-          {
-            id: '2',
-            name: 'Admin User',
-            email: 'admin@crickcart.com',
-            phone: '9999999999',
-            role: 'admin',
-            isActive: true,
-            createdAt: '2026-01-01',
-          },
-          {
-            id: '3',
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            phone: '9876543211',
-            role: 'user',
-            isActive: false,
-            createdAt: '2026-02-01',
-          },
-        ]);
-        setLoading(false);
-      }, 1000);
+      setLoading(true);
+      const { data } = await api.get('/admin/users');
+      setUsers(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users');
+      toast.error(error.response?.data?.message || 'Failed to fetch users');
+    } finally {
       setLoading(false);
     }
   };
@@ -62,37 +34,40 @@ const UserManagement = () => {
   const handleRoleToggle = async (userId, currentRole) => {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     try {
+      await api.patch(`/admin/users/${userId}/role`, { role: newRole });
       toast.success(`User role updated to ${newRole}`);
-      fetchUsers();
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      );
     } catch (error) {
-      toast.error('Failed to update user role');
+      toast.error(error.response?.data?.message || 'Failed to update user role');
     }
   };
 
   const handleStatusToggle = async (userId, currentStatus) => {
     try {
+      await api.patch(`/admin/users/${userId}/status`, { isActive: !currentStatus });
       toast.success(`User ${currentStatus ? 'deactivated' : 'activated'}`);
-      fetchUsers();
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, isActive: !currentStatus } : u))
+      );
     } catch (error) {
-      toast.error('Failed to update user status');
+      toast.error(error.response?.data?.message || 'Failed to update user status');
     }
   };
 
   const handleDeleteClick = (user) => {
-    setConfirmDialog({
-      isOpen: true,
-      userId: user.id,
-      userName: user.name,
-    });
+    setConfirmDialog({ isOpen: true, userId: user.id, userName: user.name });
   };
 
   const handleDeleteConfirm = async () => {
     try {
+      await api.delete(`/admin/users/${confirmDialog.userId}`);
       toast.success(`User "${confirmDialog.userName}" deleted successfully!`);
+      setUsers((prev) => prev.filter((u) => u.id !== confirmDialog.userId));
       setConfirmDialog({ isOpen: false, userId: null, userName: '' });
-      fetchUsers();
     } catch (error) {
-      toast.error('Failed to delete user');
+      toast.error(error.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -100,9 +75,7 @@ const UserManagement = () => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-
     return matchesSearch && matchesRole;
   });
 
@@ -124,21 +97,19 @@ const UserManagement = () => {
               className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#00a8e8] focus:outline-none"
             />
           </div>
-
-          <div>
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold"
-            >
-              <option value="all">All Roles</option>
-              <option value="user">Users</option>
-              <option value="admin">Admins</option>
-            </select>
-          </div>
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-[#00a8e8] focus:outline-none font-bold"
+          >
+            <option value="all">All Roles</option>
+            <option value="user">Users</option>
+            <option value="admin">Admins</option>
+          </select>
         </div>
       </div>
 
+      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <p className="text-sm text-gray-600 mb-2">Total Users</p>
@@ -158,13 +129,13 @@ const UserManagement = () => {
         </div>
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left py-4 px-6 font-bold">User</th>
-                <th className="text-left py-4 px-6 font-bold">Contact</th>
+                <tr>
+                  <th className="text-left py-4 px-6 font-bold">User</th>
                 <th className="text-left py-4 px-6 font-bold">Role</th>
                 <th className="text-left py-4 px-6 font-bold">Status</th>
                 <th className="text-left py-4 px-6 font-bold">Joined</th>
@@ -174,13 +145,13 @@ const UserManagement = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00a8e8] mx-auto"></div>
+                  <td colSpan="5" className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00a8e8] mx-auto" />
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-8 text-gray-500">
+                  <td colSpan="5" className="text-center py-8 text-gray-500">
                     No users found
                   </td>
                 </tr>
@@ -197,9 +168,6 @@ const UserManagement = () => {
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
                       </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <p className="text-sm">{user.phone}</p>
                     </td>
                     <td className="py-4 px-6">
                       <button
@@ -230,7 +198,9 @@ const UserManagement = () => {
                         {user.isActive ? 'ACTIVE' : 'INACTIVE'}
                       </button>
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-600">{user.createdAt}</td>
+                    <td className="py-4 px-6 text-sm text-gray-600">
+                      {new Date(user.createdAt).toLocaleDateString('en-IN')}
+                    </td>
                     <td className="py-4 px-6">
                       <button
                         onClick={() => handleDeleteClick(user)}
