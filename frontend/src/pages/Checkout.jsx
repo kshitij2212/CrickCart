@@ -333,11 +333,11 @@ const Checkout = () => {
                     <motion.div 
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 max-w-sm w-full mx-4 border-2 border-[#00a8e8]/20"
+                        className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 max-w-sm w-full mx-4 border-2 border-slate-200"
                     >
                         <div className="relative">
-                            <div className="absolute inset-0 bg-[#00a8e8]/20 rounded-full blur-xl animate-pulse"></div>
-                            <Loader2 className="w-16 h-16 text-[#00a8e8] animate-spin relative z-10" />
+                            <div className="absolute inset-0 bg-slate-100 rounded-full blur-xl animate-pulse"></div>
+                            <Loader2 className="w-16 h-16 text-[#00171f] animate-spin relative z-10" />
                         </div>
                         <div className="text-center">
                             <h3 className="text-xl font-black italic text-[#00171f] mb-2 uppercase tracking-tight">

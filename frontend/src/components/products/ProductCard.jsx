@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, ShoppingCart, Star } from 'lucide-react';
+import { Heart, ShoppingCart, Star, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -115,9 +115,15 @@ const ProductCard = ({ product }) => {
           <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-800">
             <img
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               src={imageUrl}
             />
+            
+            <div className="absolute inset-0 bg-[#00171f]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+              <div className="bg-[#f8f8f8] text-[#00171f] font-black italic px-6 py-3 flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl rounded-xl">
+                VIEW PRODUCT <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
           </div>
 
           <div className="px-6 pt-6 pb-2">
