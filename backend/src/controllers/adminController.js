@@ -2,6 +2,10 @@ const User = require('../models/User');
 
 exports.getAllUsers = async (req, res) => {
   try {
+    if (req.query.count === 'true') {
+      const total = await User.countDocuments();
+      return res.status(200).json({ total });
+    }
     const users = await User.find().select('-password');
     return res.status(200).json(users);
   } catch (error) {

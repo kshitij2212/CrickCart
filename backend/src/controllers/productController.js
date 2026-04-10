@@ -105,7 +105,6 @@ exports.getAllProducts = async (req, res) => {
         const limitNumber = Number(limit) || 12;
         const skip = (pageNumber - 1) * limitNumber;
 
-        // Resolve slug/string category and brand to ObjectId if needed
         let categoryId = undefined;
         if (category) {
             if (mongoose.Types.ObjectId.isValid(category)) {
@@ -148,7 +147,6 @@ exports.getAllProducts = async (req, res) => {
             }
         }
 
-        // Build aggregation match
         const match = {};
         if (categoryId) match.category = categoryId;
         if (brandId) match.brand = brandId;
@@ -161,11 +159,9 @@ exports.getAllProducts = async (req, res) => {
             ];
         }
 
-        // Build aggregation pipeline
         const pipeline = [];
         if (Object.keys(match).length) pipeline.push({ $match: match });
 
-        // compute finalPrice field
         pipeline.push({
             $addFields: {
                 finalPrice: {
@@ -178,13 +174,11 @@ exports.getAllProducts = async (req, res) => {
             },
         });
 
-        // Filter by finalPrice if provided
         const priceMatch = {};
         if (minPrice) priceMatch.$gte = Number(minPrice);
         if (maxPrice) priceMatch.$lte = Number(maxPrice);
         if (Object.keys(priceMatch).length) pipeline.push({ $match: { finalPrice: priceMatch } });
 
-        // join category and brand
         pipeline.push(
             { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "category" } },
             { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
@@ -192,7 +186,6 @@ exports.getAllProducts = async (req, res) => {
             { $unwind: { path: "$brand", preserveNullAndEmptyArrays: true } }
         );
 
-        // project only the fields that previous populate returned (keeps response shape similar to Mongoose)
         pipeline.push({
             $project: {
                 name: 1,
@@ -214,14 +207,12 @@ exports.getAllProducts = async (req, res) => {
             },
         });
 
-        // Sorting
         if (typeof sort === "string" && sort.length) {
             const sortField = sort.startsWith("-") ? sort.substring(1) : sort;
             const sortOrder = sort.startsWith("-") ? -1 : 1;
             pipeline.push({ $sort: { [sortField]: sortOrder } });
         } else pipeline.push({ $sort: { createdAt: -1 } });
 
-        // Facet to get total count and paginated results
         pipeline.push({
             $facet: {
                 metadata: [{ $count: "total" }],
@@ -235,7 +226,6 @@ exports.getAllProducts = async (req, res) => {
         const totalPages = Math.ceil(totalFiltered / limitNumber);
         const paginatedProducts = aggResult[0].data || [];
 
-        // Transform aggregation docs to mimic Mongoose toJSON behavior (add `id`, remove `_id` on product/category/brand)
         const transform = (doc) => {
             const out = { ...doc };
             if (out._id) {

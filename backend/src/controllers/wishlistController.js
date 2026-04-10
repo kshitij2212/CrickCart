@@ -2,12 +2,10 @@ const Wishlist = require('../models/Wishlist');
 const Product = require('../models/Product');
 
 exports.getWishlist = async (req, res) => {
-    console.log('🔥 getWishlist called');
     try {
         let wishlist = await Wishlist.findOne({ user: req.user.id })
             .populate('items.product')
             .lean()
-        console.log('product data:', JSON.stringify(wishlist?.items?.[0]?.product, null, 2));
 
         if (!wishlist) {
             await Wishlist.create({ user: req.user.id, items: [] });

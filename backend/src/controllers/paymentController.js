@@ -10,7 +10,7 @@ exports.createOrder = async (req, res) => {
 
             const { amount } = req.body;
             const options = {
-                amount: amount * 100, // amount in smallest currency unit
+                amount: amount * 100,
                 currency: "INR",
                 receipt: `receipt_order_${Math.floor(Math.random() * 1000)}`,
             };
