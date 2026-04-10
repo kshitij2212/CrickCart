@@ -101,109 +101,171 @@ exports.getAllProducts = async (req, res) => {
     const mongoose = require("mongoose");
     const Brand = require("../models/Brand");
 
-    const pageNumber = Number(page) || 1;
-    const limitNumber = Number(limit) || 12;
-    const skip = (pageNumber - 1) * limitNumber;
+        const pageNumber = Number(page) || 1;
+        const limitNumber = Number(limit) || 12;
+        const skip = (pageNumber - 1) * limitNumber;
 
-    let query = {};
-
-    console.log("REQ QUERY:", req.query);
-
-    if (category) {
-      if (mongoose.Types.ObjectId.isValid(category)) {
-        query.category = category;
-      } else {
-        const categoryDoc = await Category.findOne({ slug: category });
-
-        if (!categoryDoc) {
-          return res.status(200).json({
-            success: true,
-            count: 0,
-            total: 0,
-            totalPages: 0,
-            currentPage: pageNumber,
-            data: [],
-          });
+        // Resolve slug/string category and brand to ObjectId if needed
+        let categoryId = undefined;
+        if (category) {
+            if (mongoose.Types.ObjectId.isValid(category)) {
+                categoryId = new mongoose.Types.ObjectId(category);
+            } else {
+                const categoryDoc = await Category.findOne({ slug: category });
+                if (!categoryDoc) {
+                    return res.status(200).json({
+                        success: true,
+                        count: 0,
+                        total: 0,
+                        totalPages: 0,
+                        currentPage: pageNumber,
+                        data: [],
+                    });
+                }
+                categoryId = categoryDoc._id;
+            }
         }
 
-        query.category = categoryDoc._id;
-      }
-    }
+        let brandId = undefined;
+        if (brand) {
+            if (mongoose.Types.ObjectId.isValid(brand)) {
+                brandId = new mongoose.Types.ObjectId(brand);
+            } else {
+                const brandDoc = await Brand.findOne({
+                    $or: [{ slug: brand }, { name: { $regex: brand, $options: "i" } }],
+                });
+                if (!brandDoc) {
+                    return res.status(200).json({
+                        success: true,
+                        count: 0,
+                        total: 0,
+                        totalPages: 0,
+                        currentPage: pageNumber,
+                        data: [],
+                    });
+                }
+                brandId = brandDoc._id;
+            }
+        }
 
-    if (brand) {
-      if (mongoose.Types.ObjectId.isValid(brand)) {
-        query.brand = brand;
-      } else {
-        const brandDoc = await Brand.findOne({
-          $or: [
-            { slug: brand },
-            { name: { $regex: brand, $options: "i" } },
-          ],
+        // Build aggregation match
+        const match = {};
+        if (categoryId) match.category = categoryId;
+        if (brandId) match.brand = brandId;
+        if (featured !== undefined) match.isFeatured = featured === "true";
+        if (search && search.trim()) {
+            const searchValue = search.trim();
+            match.$or = [
+                { name: { $regex: searchValue, $options: "i" } },
+                { description: { $regex: searchValue, $options: "i" } },
+            ];
+        }
+
+        // Build aggregation pipeline
+        const pipeline = [];
+        if (Object.keys(match).length) pipeline.push({ $match: match });
+
+        // compute finalPrice field
+        pipeline.push({
+            $addFields: {
+                finalPrice: {
+                    $cond: [
+                        { $gt: ["$discount", 0] },
+                        { $subtract: ["$price", { $multiply: ["$price", { $divide: ["$discount", 100] }] }] },
+                        "$price",
+                    ],
+                },
+            },
         });
 
-        if (!brandDoc) {
-          return res.status(200).json({
+        // Filter by finalPrice if provided
+        const priceMatch = {};
+        if (minPrice) priceMatch.$gte = Number(minPrice);
+        if (maxPrice) priceMatch.$lte = Number(maxPrice);
+        if (Object.keys(priceMatch).length) pipeline.push({ $match: { finalPrice: priceMatch } });
+
+        // join category and brand
+        pipeline.push(
+            { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "category" } },
+            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            { $lookup: { from: "brands", localField: "brand", foreignField: "_id", as: "brand" } },
+            { $unwind: { path: "$brand", preserveNullAndEmptyArrays: true } }
+        );
+
+        // project only the fields that previous populate returned (keeps response shape similar to Mongoose)
+        pipeline.push({
+            $project: {
+                name: 1,
+                slug: 1,
+                description: 1,
+                price: 1,
+                discount: 1,
+                images: 1,
+                countInStock: 1,
+                rating: 1,
+                numReviews: 1,
+                specifications: 1,
+                isFeatured: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                finalPrice: 1,
+                category: { name: "$category.name", slug: "$category.slug", color: "$category.color", _id: "$category._id" },
+                brand: { name: "$brand.name", slug: "$brand.slug", logo: "$brand.logo", _id: "$brand._id" },
+            },
+        });
+
+        // Sorting
+        if (typeof sort === "string" && sort.length) {
+            const sortField = sort.startsWith("-") ? sort.substring(1) : sort;
+            const sortOrder = sort.startsWith("-") ? -1 : 1;
+            pipeline.push({ $sort: { [sortField]: sortOrder } });
+        } else pipeline.push({ $sort: { createdAt: -1 } });
+
+        // Facet to get total count and paginated results
+        pipeline.push({
+            $facet: {
+                metadata: [{ $count: "total" }],
+                data: [{ $skip: skip }, { $limit: limitNumber }],
+            },
+        });
+
+        const aggResult = await Product.aggregate(pipeline).exec();
+        const metadata = aggResult[0].metadata[0] || { total: 0 };
+        const totalFiltered = metadata.total || 0;
+        const totalPages = Math.ceil(totalFiltered / limitNumber);
+        const paginatedProducts = aggResult[0].data || [];
+
+        // Transform aggregation docs to mimic Mongoose toJSON behavior (add `id`, remove `_id` on product/category/brand)
+        const transform = (doc) => {
+            const out = { ...doc };
+            if (out._id) {
+                out.id = out._id;
+                delete out._id;
+            }
+
+            if (out.category && out.category._id) {
+                out.category.id = out.category._id;
+                delete out.category._id;
+            }
+
+            if (out.brand && out.brand._id) {
+                out.brand.id = out.brand._id;
+                delete out.brand._id;
+            }
+
+            return out;
+        };
+
+        const transformed = paginatedProducts.map(transform);
+
+        res.status(200).json({
             success: true,
-            count: 0,
-            total: 0,
-            totalPages: 0,
+            count: transformed.length,
+            total: totalFiltered,
+            totalPages,
             currentPage: pageNumber,
-            data: [],
-          });
-        }
-
-        query.brand = brandDoc._id;
-      }
-    }
-
-    if (search && search.trim()) {
-      const searchValue = search.trim();
-      query.$or = [
-        { name: { $regex: searchValue, $options: "i" } },
-        { description: { $regex: searchValue, $options: "i" } },
-      ];
-    }
-
-    if (featured !== undefined) {
-      query.isFeatured = featured === "true";
-    }
-
-    console.log("FINAL QUERY:", JSON.stringify(query, null, 2));
-
-    let allProducts = await Product.find(query)
-      .populate("category", "name slug color")
-      .populate("brand", "name slug logo")
-      .sort(typeof sort === "string" ? sort : "-createdAt");
-
-    console.log("ALL MATCHING PRODUCTS:", allProducts.length);
-
-    if (minPrice || maxPrice) {
-      allProducts = allProducts.filter((product) => {
-        const finalPrice =
-          product.discount && product.discount > 0
-            ? product.price - (product.price * product.discount) / 100
-            : product.price;
-
-        if (minPrice && finalPrice < Number(minPrice)) return false;
-        if (maxPrice && finalPrice > Number(maxPrice)) return false;
-
-        return true;
-      });
-    }
-
-    const totalFiltered = allProducts.length;
-    const totalPages = Math.ceil(totalFiltered / limitNumber);
-
-    const paginatedProducts = allProducts.slice(skip, skip + limitNumber);
-
-    res.status(200).json({
-      success: true,
-      count: paginatedProducts.length,
-      total: totalFiltered,
-      totalPages,
-      currentPage: pageNumber,
-      data: paginatedProducts,
-    });
+            data: transformed,
+        });
   } catch (error) {
     console.error("GET ALL PRODUCTS ERROR MESSAGE:", error.message);
     console.error("GET ALL PRODUCTS STACK:", error.stack);
