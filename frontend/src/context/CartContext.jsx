@@ -7,6 +7,7 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [adding, setAdding] = useState({});
 
   const fetchCart = async () => {
     try {
@@ -21,12 +22,21 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (productId, quantity = 1) => {
+    setAdding((s) => ({ ...s, [productId]: true }));
     try {
       const { data } = await api.post('/cart/add', { productId, quantity });
       setCart(data.data);
+      toast.success('Added to cart');
       return data;
     } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add to cart');
       throw error;
+    } finally {
+      setAdding((s) => {
+        const copy = { ...s };
+        delete copy[productId];
+        return copy;
+      });
     }
   };
 
@@ -62,6 +72,7 @@ export const CartProvider = ({ children }) => {
   const value = {
     cart,
     loading,
+    adding,
     fetchCart,
     addToCart,
     updateCartItem,

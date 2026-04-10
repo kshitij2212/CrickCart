@@ -80,7 +80,6 @@ const ProductManagement = () => {
     setEditingProduct(null);
   };
 
-  // products is now the current page's data from server
   const paginatedProducts = products;
   const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
 

@@ -23,32 +23,39 @@ const Overview = () => {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const pRes = await api.get('/products?limit=1');
-        const totalProducts = pRes.data?.total ?? 0;
+        const requests = [
+          api.get('/products?limit=1'),
+          api.get('/orders?limit=5'),
+          api.get('/admin/users?count=true'),
+        ];
 
-        const oRes = await api.get('/orders?limit=5');
-        const orders = oRes.data?.data || [];
-        const totalOrders = oRes.data?.total ?? orders.length;
-        const totalRevenue = orders.reduce(
-          (sum, o) => sum + (o.pricing?.totalPrice || 0),
-          0
-        );
+        const [pRes, oRes, uRes] = await Promise.allSettled(requests);
+
+        let totalProducts = 0;
+        if (pRes.status === 'fulfilled') {
+          totalProducts = pRes.value.data?.total ?? 0;
+        }
+
+        let orders = [];
+        let totalOrders = 0;
+        let totalRevenue = 0;
+        if (oRes.status === 'fulfilled') {
+          orders = oRes.value.data?.data || [];
+          totalOrders = oRes.value.data?.total ?? orders.length;
+          totalRevenue = orders.reduce((sum, o) => sum + (o.pricing?.totalPrice || 0), 0);
+        }
 
         let totalUsers = 0;
-        try {
-          const uRes = await api.get('/admin/users');
-          totalUsers = Array.isArray(uRes.data)
-            ? uRes.data.length
-            : uRes.data?.total ?? 0;
-        } catch (error) {
-          console.log(error)
+        if (uRes.status === 'fulfilled') {
+          const d = uRes.value.data;
+          totalUsers = Array.isArray(d) ? d.length : d?.total ?? 0;
         }
 
         setStats({ totalProducts, totalOrders, totalUsers, totalRevenue });
         setRecentOrders(orders.slice(0, 5));
       } catch (error) {
         toast.error('Failed to load dashboard stats');
-        console.log(error)
+        console.log(error);
       }
     };
 

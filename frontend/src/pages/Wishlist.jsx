@@ -4,11 +4,10 @@ import { Trash2, ShoppingCart } from 'lucide-react';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
 
 const Wishlist = () => {
   const { wishlist, loading, fetchWishlist, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  const { addToCart, adding } = useCart();
 
   useEffect(() => {
     fetchWishlist();
@@ -22,10 +21,14 @@ const Wishlist = () => {
     }
   };
 
-  const handleAddToCart = (item) => {
+  const handleAddToCart = async (item) => {
     const product = item.product || item;
     const productId = product._id || product.id;
-    addToCart(productId, 1);
+    try {
+      await addToCart(productId, 1);
+    } catch (err) {
+      console.error('Failed to add to cart', err);
+    }
   };
 
   if (loading) {
@@ -152,15 +155,24 @@ const Wishlist = () => {
 
                   <button
                     onClick={() => handleAddToCart(item)}
-                    disabled={product.countInStock === 0}
+                    disabled={product.countInStock === 0 || Boolean(adding?.[productId])}
                     className={`w-full text-white font-black italic py-3 rounded transition flex items-center justify-center gap-2 ${
-                      product.countInStock === 0
+                      product.countInStock === 0 || Boolean(adding?.[productId])
                         ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-[#00171f] hover:bg-[#00a8e8]'
                     }`}
                   >
-                    <ShoppingCart className="w-5 h-5" />
-                    {product.countInStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+                    {adding?.[productId] ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>ADDING...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-5 h-5" />
+                        {product.countInStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+                      </>
+                    )}
                   </button>
                 </div>
               </motion.div>

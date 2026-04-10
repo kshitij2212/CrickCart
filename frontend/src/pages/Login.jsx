@@ -15,7 +15,6 @@ const EyeIcon = ({ open }) =>
     </svg>
   );
 
-// ── Validation ────────────────────────────────────────────────────────────────
 const validate = ({ email, password }) => {
   const errors = {};
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,7 +27,6 @@ const validate = ({ email, password }) => {
 
   return errors;
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const inputStyle = (hasError, isValid) => ({
   background: hasError
@@ -200,7 +198,6 @@ const Login = () => {
           <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.06)' }} />
         </div>
 
-        {/* API error banner */}
         {apiError && (
           <div
             className="mb-4 px-4 py-3 rounded-xl text-sm font-medium"
@@ -223,7 +220,6 @@ const Login = () => {
                   {label}
                 </label>
                 <div className="relative">
-                  {/* Leading icon */}
                   <span
                     className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
                     style={{ color: hasError ? '#e53935' : '#00a8e8', opacity: 0.7 }}
@@ -254,7 +250,6 @@ const Login = () => {
                     onChange={(e) => handleChange(key, e.target.value)}
                   />
 
-                  {/* Password toggle */}
                   {isPassword && (
                     <button
                       type="button"
@@ -267,7 +262,6 @@ const Login = () => {
                     </button>
                   )}
 
-                  {/* Valid checkmark */}
                   {!isPassword && isValid && (
                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2" style={{ color: '#2e7d32', fontSize: 14 }}>
                       ✓
@@ -275,7 +269,6 @@ const Login = () => {
                   )}
                 </div>
 
-                {/* Inline error */}
                 {hasError && (
                   <p className="mt-1.5 text-xs font-medium" style={{ color: '#e53935' }}>
                     {errors[key]}

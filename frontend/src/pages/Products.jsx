@@ -50,7 +50,7 @@ const Products = () => {
       maxPrice: urlMax,
       sort: urlSort,
     });
-  }, [searchParams.toString()]);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchCategories();

@@ -49,7 +49,6 @@ const Checkout = () => {
     const [newAddrForm,      setNewAddrForm]       = useState(EMPTY_ADDRESS_FORM);
     const [addrLoading,      setAddrLoading]       = useState(false);
     const [savingAddr,       setSavingAddr]        = useState(false);
-
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     const [shippingMethod,    setShippingMethod]    = useState('standard');
     const [paymentMethod,     setPaymentMethod]     = useState('online');
@@ -67,7 +66,8 @@ const Checkout = () => {
                 const def = addrs.find(a => a.isDefault) || addrs[0];
                 if (def) setSelectedAddrId(def._id);
                 if (addrs.length > 0) setShowNewAddrForm(false);
-            } catch {
+            } catch (err){
+                console.log(err);
             } finally {
                 setAddrLoading(false);
             }
@@ -258,12 +258,15 @@ const Checkout = () => {
                             await orderService.createOrder(dbOrderData);
                             await clearCart();
                             toast.success('Order placed!');
+                            setPaymentProcessing(false);
                             navigate('/orders');
                         } else {
                             toast.error('Payment Verification Failed!');
+                            setPaymentProcessing(false);
                         }
-                    } catch (err) {
-                        toast.error('Error verifying payment.');
+                    } catch (error) {
+                            toast.error('Error verifying payment.');
+                            setPaymentProcessing(false);
                     }
                 },
                 prefill: {
@@ -315,6 +318,14 @@ const Checkout = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8">
+            {paymentProcessing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="bg-white p-6 rounded-lg flex flex-col items-center gap-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00a8e8]"></div>
+                        <p className="font-black">Processing payment — please wait...</p>
+                    </div>
+                </div>
+            )}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
 

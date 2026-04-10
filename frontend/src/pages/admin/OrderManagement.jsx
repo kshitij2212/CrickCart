@@ -16,7 +16,6 @@ const OrderManagement = () => {
     try {
       setLoading(true);
       const res = await api.get('/orders');
-      // API returns { success, count, total, data }
       const orders = res.data?.data || [];
       // Normalize ID: backend returns _id when using .lean(), ensure `id` exists
       const normalized = orders.map((o) => ({ ...o, id: o.id || o._id }));
@@ -66,7 +65,7 @@ const OrderManagement = () => {
                 <th className="text-left py-4 px-6 font-bold">Customer</th>
                 <th className="text-left py-4 px-6 font-bold">Amount</th>
                 <th className="text-left py-4 px-6 font-bold">Status</th>
-                <th className="text-left py-4 px-6 font-bold">Date</th>
+                <th className="text-left py-4 px-6 font-bold">Date & Time</th>
               </tr>
             </thead>
             <tbody>
@@ -100,8 +99,7 @@ const OrderManagement = () => {
                         <option value="Cancelled">Cancelled</option>
                       </select>
                     </td>
-                    <td className="py-4 px-6">{order.createdAt}</td>
-                    
+                    <td className="py-4 px-6">{order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}</td>
                   </tr>
                 ))
               )}
