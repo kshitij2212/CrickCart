@@ -17,7 +17,6 @@ const OrderManagement = () => {
       setLoading(true);
       const res = await api.get('/orders');
       const orders = res.data?.data || [];
-      // Normalize ID: backend returns _id when using .lean(), ensure `id` exists
       const normalized = orders.map((o) => ({ ...o, id: o.id || o._id }));
       setOrders(normalized);
     } catch (error) {

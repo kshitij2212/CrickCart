@@ -63,7 +63,6 @@ const Profile = () => {
     setUpdating(true);
     try {
       const res = await authService.updateProfile({ name: formData.name, phone: formData.phone });
-      // Use the user object returned from backend to ensure all fields are correct
       if (res.success && res.user) {
         updateUser(res.user);
         toast.success(res.message || 'Profile updated successfully!');

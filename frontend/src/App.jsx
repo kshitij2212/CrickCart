@@ -40,19 +40,19 @@ export default function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
 
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetails />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsOfPlay />} />
+            <Route path="/" element={<ProtectedRoute userOnly><Home /></ProtectedRoute>} />
+            <Route path="/products" element={<ProtectedRoute userOnly><Products /></ProtectedRoute>} />
+            <Route path="/products/:id" element={<ProtectedRoute userOnly><ProductDetails /></ProtectedRoute>} />
+            <Route path="/login" element={<ProtectedRoute userOnly><Login /></ProtectedRoute>} />
+            <Route path="/register" element={<ProtectedRoute userOnly><Register /></ProtectedRoute>} />
+            <Route path="/contact" element={<ProtectedRoute userOnly><ContactUs /></ProtectedRoute>} />
+            <Route path="/privacy" element={<ProtectedRoute userOnly><PrivacyPolicy /></ProtectedRoute>} />
+            <Route path="/terms" element={<ProtectedRoute userOnly><TermsOfPlay /></ProtectedRoute>} />
 
             <Route
               path="/cart"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAuth userOnly>
                   <Cart />
                 </ProtectedRoute>
               }
@@ -61,7 +61,7 @@ export default function App() {
             <Route
               path="/checkout"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAuth userOnly>
                   <Checkout />
                 </ProtectedRoute>
               }
@@ -70,7 +70,7 @@ export default function App() {
             <Route
               path="/orders"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAuth userOnly>
                   <Orders />
                 </ProtectedRoute>
               }
@@ -79,7 +79,7 @@ export default function App() {
             <Route
               path="/orders/:id"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAuth userOnly>
                   <OrderDetails />
                 </ProtectedRoute>
               }
@@ -88,7 +88,7 @@ export default function App() {
             <Route
               path="/wishlist"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAuth userOnly>
                   <Wishlist />
                 </ProtectedRoute>
               }
@@ -97,7 +97,7 @@ export default function App() {
             <Route
               path="/profile"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireAuth userOnly>
                   <Profile />
                 </ProtectedRoute>
               }
