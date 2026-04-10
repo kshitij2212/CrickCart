@@ -29,6 +29,7 @@ api.interceptors.request.use(
           ) {
             return Promise.reject({
               response: {
+                status: 403,
                 data: { message: 'Action restricted in Demo Mode.' },
               },
             });
@@ -48,6 +49,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const token = localStorage.getItem('token');
+      // Only redirect if there's a token but the server says it's invalid
       if (token) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

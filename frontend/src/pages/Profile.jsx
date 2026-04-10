@@ -62,12 +62,17 @@ const Profile = () => {
     }
     setUpdating(true);
     try {
-      await authService.updateProfile({ name: formData.name, phone: formData.phone });
-      updateUser({ name: formData.name, phone: formData.phone });
-      toast.success('Profile updated successfully!');
-      setEditing(false);
+      const res = await authService.updateProfile({ name: formData.name, phone: formData.phone });
+      // Use the user object returned from backend to ensure all fields are correct
+      if (res.success && res.user) {
+        updateUser(res.user);
+        toast.success(res.message || 'Profile updated successfully!');
+        setEditing(false);
+      } else {
+        throw new Error(res.message || 'Update failed');
+      }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update profile');
+      toast.error(err.response?.data?.message || err.message || 'Failed to update profile');
     } finally {
       setUpdating(false);
     }

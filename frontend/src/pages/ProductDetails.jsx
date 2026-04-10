@@ -62,14 +62,9 @@ const ProductDetails = () => {
     }
     setAddingToCart(true);
     try {
-      const res = await addToCart(product.id, quantity);
-      if (res?.success) {
-        toast.success('Added to cart!', { duration: 1500 });
-      } else {
-        toast.error(res?.message || 'Failed to add to cart');
-      }
+      await addToCart(product.id, quantity);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add to cart');
+      console.error('Add to cart error:', error);
     } finally {
       setAddingToCart(false);
     }
