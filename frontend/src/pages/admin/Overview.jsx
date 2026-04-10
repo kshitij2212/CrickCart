@@ -7,6 +7,7 @@ import {
   IndianRupee,
   TrendingUp,
   Eye,
+  Loader2,
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -19,10 +20,12 @@ const Overview = () => {
     totalRevenue: 0,
   });
   const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
       try {
+        setLoading(true);
         const requests = [
           api.get('/products?limit=1'),
           api.get('/orders?limit=5'),
@@ -56,6 +59,8 @@ const Overview = () => {
       } catch (error) {
         toast.error('Failed to load dashboard stats');
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -75,6 +80,17 @@ const Overview = () => {
     Cancelled: 'bg-red-100 text-red-600',
     Shipped: 'bg-blue-100 text-blue-700',
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-12 h-12 text-[#00a8e8] animate-spin mb-4" />
+        <p className="text-gray-500 font-bold italic animate-pulse">
+          FETCHING DASHBOARD DATA...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>

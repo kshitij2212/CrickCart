@@ -4,7 +4,8 @@ import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import {
     Lock, Truck, Shield, CreditCard, ChevronRight, MapPin,
-    Phone, User, Home, Package, Plus, Check, Trash2, Star, Copy
+    Phone, User, Home, Package, Plus, Check, Trash2, Star, Copy,
+    Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -50,6 +51,7 @@ const Checkout = () => {
     const [addrLoading,      setAddrLoading]       = useState(false);
     const [savingAddr,       setSavingAddr]        = useState(false);
     const [paymentProcessing, setPaymentProcessing] = useState(false);
+    const [processingMessage, setProcessingMessage] = useState('Preparing your order...');
     const [shippingMethod,    setShippingMethod]    = useState('standard');
     const [paymentMethod,     setPaymentMethod]     = useState('online');
 
@@ -199,6 +201,7 @@ const Checkout = () => {
                 return;
             }
 
+            setProcessingMessage('Generating secure payment link...');
             const { data: orderDataRes } = await api.post('/payment/create-order', { amount: total });
             
             if (!orderDataRes.success) {
@@ -215,6 +218,8 @@ const Checkout = () => {
                 order_id: orderDataRes.order.id,
                 handler: async function (response) {
                     console.log('Razorpay response:', response);
+                    setPaymentProcessing(true);
+                    setProcessingMessage('Verifying payment & finalizing order...');
                     try {
                         const { data: verifyData } = await api.post('/payment/verify-payment', {
                             razorpay_order_id: response.razorpay_order_id,
@@ -277,6 +282,11 @@ const Checkout = () => {
                 theme: {
                     color: "#00a8e8",
                 },
+                modal: {
+                    ondismiss: function() {
+                        setPaymentProcessing(false);
+                    }
+                }
             };
 
             const paymentObject = new window.Razorpay(options);
@@ -319,11 +329,25 @@ const Checkout = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8">
             {paymentProcessing && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div className="bg-white p-6 rounded-lg flex flex-col items-center gap-4">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00a8e8]"></div>
-                        <p className="font-black">Processing payment — please wait...</p>
-                    </div>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#00171f]/60 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 max-w-sm w-full mx-4 border-2 border-[#00a8e8]/20"
+                    >
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-[#00a8e8]/20 rounded-full blur-xl animate-pulse"></div>
+                            <Loader2 className="w-16 h-16 text-[#00a8e8] animate-spin relative z-10" />
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-xl font-black italic text-[#00171f] mb-2 uppercase tracking-tight">
+                                {processingMessage}
+                            </h3>
+                            <p className="text-slate-500 text-sm font-bold italic">
+                                Please do not close this window or refresh the page.
+                            </p>
+                        </div>
+                    </motion.div>
                 </div>
             )}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -591,7 +615,7 @@ const Checkout = () => {
                                     className="p-6 bg-gradient-to-br from-[#00a8e8]/10 to-[#00a8e8]/5 rounded-xl border-2 border-[#00a8e8]/20 text-center space-y-4">
                                     <div className="bg-white p-4 rounded-lg border border-dashed border-[#00a8e8]/40 text-left">
                                         <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-black uppercase tracking-wider text-[#00a8e8]">Test Mode Cards</span>
+                                            <span className="text-xs font-black uppercase tracking-wider text-[#00a8e8]">Test Mode Card</span>
                                             <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-bold">Any Expiry / CVV</span>
                                         </div>
                                         <div className="space-y-2">
@@ -607,7 +631,7 @@ const Checkout = () => {
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center justify-between text-sm font-mono bg-slate-50 p-2 rounded border border-slate-100 group">
+                                            {/* <div className="flex items-center justify-between text-sm font-mono bg-slate-50 p-2 rounded border border-slate-100 group">
                                                 <div className="flex items-center gap-2 text-slate-700">
                                                     <CreditCard className="w-4 h-4 text-slate-400" />
                                                     4718 6091 0820 4366
@@ -618,7 +642,7 @@ const Checkout = () => {
                                                         <Copy className="w-4 h-4" />
                                                     </button>
                                                 </div>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                 </motion.div>
