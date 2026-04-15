@@ -93,7 +93,7 @@ exports.getAllProducts = async (req, res) => {
       maxPrice,
       search,
       featured,
-      sort = "-createdAt",
+    sort = "-updatedAt",
       page = 1,
       limit = 12,
     } = req.query;
@@ -211,7 +211,7 @@ exports.getAllProducts = async (req, res) => {
             const sortField = sort.startsWith("-") ? sort.substring(1) : sort;
             const sortOrder = sort.startsWith("-") ? -1 : 1;
             pipeline.push({ $sort: { [sortField]: sortOrder } });
-        } else pipeline.push({ $sort: { createdAt: -1 } });
+        } else pipeline.push({ $sort: { updatedAt: -1 } });
 
         pipeline.push({
             $facet: {
@@ -274,7 +274,7 @@ exports.getFeaturedProducts = async (req, res) => {
             .populate('category', 'name slug color')
             .populate('brand', 'name slug logo')
             .limit(10)
-            .sort('-createdAt');
+            .sort('-updatedAt');
 
         res.status(200).json({
             success: true,
@@ -355,16 +355,15 @@ exports.updateProduct = async (req, res) => {
             req.body.slug = slugify(req.body.name, { lower: true }) + '-' + Date.now();
         }
 
-        product = await Product.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            {
-                new: true,
-                runValidators: true
-            }
-        )
-        .populate('category', 'name slug color')
-        .populate('brand', 'name slug logo');
+        Object.keys(req.body).forEach((key) => {
+            product[key] = req.body[key];
+        });
+
+        await product.save();
+
+        product = await Product.findById(product._id)
+            .populate('category', 'name slug color')
+            .populate('brand', 'name slug logo');
 
         res.status(200).json({
             success: true,
