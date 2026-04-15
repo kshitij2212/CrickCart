@@ -31,7 +31,7 @@ const Products = () => {
     const urlSearch = searchParams.get("search") || "";
     const urlMin = searchParams.get("minPrice") || "";
     const urlMax = searchParams.get("maxPrice") || "";
-    const urlSort = searchParams.get("sort") || "-createdAt";
+    const urlSort = searchParams.get("sort") || "-updatedAt";
 
     setSelectedCategory(urlCategory);
     setSelectedBrand(urlBrand);
@@ -348,7 +348,7 @@ const Products = () => {
               </button>
               <select value={sortBy} onChange={(e) => handleSort(e.target.value)}
                 className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-black italic text-sm cursor-pointer focus:border-[#00a8e8] focus:ring-0">
-                <option value="-createdAt">NEWEST</option>
+                <option value="-updatedAt">NEWEST</option>
                 <option value="price">PRICE: LOW-HIGH</option>
                 <option value="-price">PRICE: HIGH-LOW</option>
                 <option value="-rating">TOP RATED</option>
@@ -359,7 +359,7 @@ const Products = () => {
             <div className="hidden lg:flex justify-end mb-6 -mt-[65px]">
               <select value={sortBy} onChange={(e) => handleSort(e.target.value)}
                 className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-black italic cursor-pointer focus:border-[#00a8e8] focus:ring-0">
-                <option value="-createdAt">NEWEST FIRST</option>
+                <option value="-updatedAt">NEWEST FIRST</option>
                 <option value="price">PRICE: LOW TO HIGH</option>
                 <option value="-price">PRICE: HIGH TO LOW</option>
                 <option value="-rating">HIGHEST RATED</option>

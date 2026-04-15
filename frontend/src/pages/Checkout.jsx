@@ -141,6 +141,7 @@ const Checkout = () => {
 
     const validate = () => {
         if (!selectedAddrId) {
+            toast.error('Please select or add a delivery address');
             setShowNewAddrForm(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return false;
