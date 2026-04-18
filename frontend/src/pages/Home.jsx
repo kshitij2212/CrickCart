@@ -2,6 +2,7 @@ import CategorySection from '../components/home/CategorySection';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import BrandsCarousel from '../components/home/BrandsCarousel';
 import Newsletter from '../components/home/Newsletter';
+import FAQSection from '../components/home/FAQSection';
 import { Link } from "react-router-dom";
 
 export default function Home() {
@@ -55,6 +56,7 @@ export default function Home() {
       <CategorySection />
       <FeaturedProducts />
       <BrandsCarousel />
+      <FAQSection />
       <Newsletter />
     </main>
   );
